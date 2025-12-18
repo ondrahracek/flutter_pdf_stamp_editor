@@ -1,0 +1,43 @@
+# Example app (not part of the published package)
+example/
+
+# Tests (not published to pub.dev)
+test/
+
+# Example-specific Android code
+android/app/
+
+# Example-specific iOS code
+ios/app/
+
+# Deprecated/unused source files
+lib/src/engine/stamper_ffi.dart
+lib/src/engine/pdfium_loader.dart
+lib/src/pdfium_native_save.dart
+
+# Build artifacts
+build/
+**/build/
+
+# IDE files
+*.iml
+.idea/
+.vscode/
+
+# Local configuration
+**/local.properties
+
+# Generated files (example app)
+**/GeneratedPluginRegistrant.java
+**/GeneratedPluginRegistrant.swift
+**/Podfile.lock
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/ephemeral/
+**/ios/*.xcworkspace
+**/ios/*.xcuserdata/
+
+# Coverage reports
+coverage/
+**/coverage/
+

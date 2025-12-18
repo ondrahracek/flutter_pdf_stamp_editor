@@ -1,0 +1,12 @@
+[
+{
+  "directory": "U:/_QuickApps/flutter/pdf_stamp_editor/android/.cxx/Debug/71p6j3p9/x86_64",
+  "command": "C:\\Users\\Ondra\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=x86_64-none-linux-android21 --sysroot=C:/Users/Ondra/AppData/Local/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dpdf_stamp_editor_native_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles\\pdf_stamp_editor_native.dir\\pdf_stamp_editor_native.cpp.o -c U:\\_QuickApps\\flutter\\pdf_stamp_editor\\android\\src\\main\\cpp\\pdf_stamp_editor_native.cpp",
+  "file": "U:\\_QuickApps\\flutter\\pdf_stamp_editor\\android\\src\\main\\cpp\\pdf_stamp_editor_native.cpp"
+},
+{
+  "directory": "U:/_QuickApps/flutter/pdf_stamp_editor/android/.cxx/Debug/71p6j3p9/x86_64",
+  "command": "C:\\Users\\Ondra\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=x86_64-none-linux-android21 --sysroot=C:/Users/Ondra/AppData/Local/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dpdf_stamp_editor_native_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles\\pdf_stamp_editor_native.dir\\pdfium_dyn.cpp.o -c U:\\_QuickApps\\flutter\\pdf_stamp_editor\\android\\src\\main\\cpp\\pdfium_dyn.cpp",
+  "file": "U:\\_QuickApps\\flutter\\pdf_stamp_editor\\android\\src\\main\\cpp\\pdfium_dyn.cpp"
+}
+]

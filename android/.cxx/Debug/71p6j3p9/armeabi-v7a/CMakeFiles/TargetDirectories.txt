@@ -1,0 +1,3 @@
+U:/_QuickApps/flutter/pdf_stamp_editor/android/.cxx/Debug/71p6j3p9/armeabi-v7a/CMakeFiles/pdf_stamp_editor_native.dir
+U:/_QuickApps/flutter/pdf_stamp_editor/android/.cxx/Debug/71p6j3p9/armeabi-v7a/CMakeFiles/edit_cache.dir
+U:/_QuickApps/flutter/pdf_stamp_editor/android/.cxx/Debug/71p6j3p9/armeabi-v7a/CMakeFiles/rebuild_cache.dir

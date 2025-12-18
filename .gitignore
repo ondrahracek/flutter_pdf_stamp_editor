@@ -29,3 +29,22 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 /build/
 /coverage/
+
+# Android local configuration (user-specific SDK paths)
+**/local.properties
+
+# iOS/Xcode build artifacts and generated files
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/Generated.xcconfig
+**/ios/.flutter-plugins
+**/ios/.flutter-plugins-dependencies
+**/ios/Podfile.lock
+**/ios/*.xcworkspace
+**/ios/*.xcuserdata/
+**/ios/.swiftpm/
+**/ios/DerivedData/
+**/ios/.last_build_id

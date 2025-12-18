@@ -1,0 +1,22 @@
+name: pdf_stamp_editor_example
+description: Example app for pdf_stamp_editor package
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  pdf_stamp_editor:
+    path: ../
+  pdfrx: ^2.2.18
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    # Empty
+    

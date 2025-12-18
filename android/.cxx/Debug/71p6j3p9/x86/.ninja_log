@@ -1,0 +1,4 @@
+# ninja log v5
+9	620	7877543119110660	CMakeFiles/pdf_stamp_editor_native.dir/pdfium_dyn.cpp.o	49891249e1bc327c
+1	921	7877543122114480	CMakeFiles/pdf_stamp_editor_native.dir/pdf_stamp_editor_native.cpp.o	fc3df919e9374c97
+922	1141	7877543124210033	U:/_QuickApps/flutter/pdf_stamp_editor/example/build/pdf_stamp_editor/intermediates/cxx/Debug/71p6j3p9/obj/x86/libpdf_stamp_editor_native.so	accf2602ab15f66f

@@ -1,0 +1,1 @@
+U:\_QuickApps\flutter\pdf_stamp_editor\example\build\pdf_stamp_editor\intermediates\cxx\Debug\71p6j3p9\obj\x86_64

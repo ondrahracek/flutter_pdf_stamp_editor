@@ -1,0 +1,38 @@
+{
+  "buildFiles": [
+    "U:\\_QuickApps\\flutter\\pdf_stamp_editor\\android\\src\\main\\cpp\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\Ondra\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "U:\\_QuickApps\\flutter\\pdf_stamp_editor\\android\\.cxx\\Debug\\71p6j3p9\\x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\Ondra\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "U:\\_QuickApps\\flutter\\pdf_stamp_editor\\android\\.cxx\\Debug\\71p6j3p9\\x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "pdf_stamp_editor_native::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "x86",
+      "artifactName": "pdf_stamp_editor_native",
+      "output": "U:\\_QuickApps\\flutter\\pdf_stamp_editor\\example\\build\\pdf_stamp_editor\\intermediates\\cxx\\Debug\\71p6j3p9\\obj\\x86\\libpdf_stamp_editor_native.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "C:\\Users\\Ondra\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe",
+      "cppCompilerExecutable": "C:\\Users\\Ondra\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

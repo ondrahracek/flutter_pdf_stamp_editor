@@ -1,0 +1,43 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    namespace "com.ondrahracek.pdf_stamp_editor"
+
+    compileSdkVersion 34
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 34
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    // No externalNativeBuild here: stamping is done purely in Kotlin/Java via PdfBox-Android.
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.22"
+    implementation "com.tom-roush:pdfbox-android:2.0.27.0"
+}
+

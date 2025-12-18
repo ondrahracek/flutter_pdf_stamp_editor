@@ -1,0 +1,1 @@
+U:\_QuickApps\flutter\pdf_stamp_editor\android\src\main\cpp\CMakeLists.txt
