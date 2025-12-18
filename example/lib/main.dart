@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:pdf_stamp_editor/pdf_stamp_editor.dart';
@@ -63,14 +64,13 @@ class _StampDemoPageState extends State<StampDemoPage> {
   }
 
   Future<void> _pickPng() async {
-    final res = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['png'],
-      withData: true,
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
     );
-    if (res == null || res.files.isEmpty) return;
-    final bytes = res.files.single.bytes;
-    if (bytes == null) return;
+    if (image == null) return;
+    
+    final bytes = await image.readAsBytes();
     setState(() => _pngBytes = bytes);
   }
 
