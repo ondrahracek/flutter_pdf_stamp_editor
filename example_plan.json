@@ -1,0 +1,1003 @@
+{
+    "plan": {
+        "name": "Example Project Enhancement - Comprehensive API Testing",
+        "version": "1.0.0",
+        "description": "Multi-phase plan to enhance example project to demonstrate and test all package APIs and features",
+        "created": "2024-01-01",
+        "lastUpdated": "2024-01-01",
+        "defaults": {
+            "implemented": false,
+            "testCoverageRequired": 1.0,
+            "requiresBackwardCompatibility": false,
+            "followTDD": false
+        },
+        "rules": {
+            "implementationStatus": {
+                "description": "Each phase must have 'implemented' field set to false initially. When phase is complete and tested on device, set to true.",
+                "validation": "Before marking implemented: true, ensure all features work on Android and iOS devices/emulators, UI is functional, and all demonstrated APIs are accessible"
+            },
+            "testing": {
+                "description": "All phases must be tested on real devices or emulators. Manual testing is required.",
+                "requirements": [
+                    "Test on Android emulator",
+                    "Test on Android device (if available)",
+                    "Test on iOS simulator",
+                    "Test on iOS device (if available)",
+                    "Verify all demonstrated features work correctly",
+                    "Verify UI is intuitive and functional"
+                ]
+            },
+            "codeQuality": {
+                "description": "Example code should be clear, well-commented, and demonstrate best practices",
+                "requirements": [
+                    "Add comments explaining what each demo shows",
+                    "Use clear variable and method names",
+                    "Follow Flutter best practices",
+                    "Make UI intuitive and user-friendly"
+                ]
+            },
+            "documentation": {
+                "description": "Each demo page should have clear instructions and labels",
+                "requirements": [
+                    "Add instructions for each demo",
+                    "Label all interactive elements",
+                    "Show current state/status",
+                    "Provide feedback for user actions"
+                ]
+            }
+        },
+        "phases": [
+            {
+                "id": "example-phase-1",
+                "name": "Project Structure and Navigation",
+                "description": "Set up multi-page navigation structure for the example app",
+                "priority": "high",
+                "estimatedEffort": "1-2 hours",
+                "dependencies": [],
+                "implemented": false,
+                "objectives": [
+                    "Create navigation structure for multiple demo pages",
+                    "Set up home/landing page with navigation",
+                    "Create reusable widgets for common UI elements",
+                    "Establish project structure for scalability"
+                ],
+                "tasks": [
+                    {
+                        "id": "e1.1",
+                        "description": "Create example/lib/pages/ directory structure",
+                        "details": "Create directories: pages/, widgets/, utils/ for organization"
+                    },
+                    {
+                        "id": "e1.2",
+                        "description": "Create example/lib/pages/home_page.dart",
+                        "details": "Create landing page with list of demo pages, navigation to each, and brief descriptions"
+                    },
+                    {
+                        "id": "e1.3",
+                        "description": "Update example/lib/main.dart",
+                        "details": "Change entry point to show HomePage instead of StampDemoPage, set up MaterialApp with navigation"
+                    },
+                    {
+                        "id": "e1.4",
+                        "description": "Create example/lib/widgets/feature_toggle_panel.dart",
+                        "details": "Create reusable widget for feature flag toggles (enableDrag, enableResize, etc.)"
+                    },
+                    {
+                        "id": "e1.5",
+                        "description": "Create example/lib/widgets/stamp_info_panel.dart",
+                        "details": "Create reusable widget to display stamp information (count, selected, etc.)"
+                    },
+                    {
+                        "id": "e1.6",
+                        "description": "Create example/lib/widgets/controller_controls.dart",
+                        "details": "Create reusable widget with buttons for controller operations (add, update, remove, etc.)"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "et1.1",
+                        "description": "Test navigation between pages",
+                        "type": "manual",
+                        "details": "Verify all navigation links work, pages load correctly, back navigation works"
+                    },
+                    {
+                        "id": "et1.2",
+                        "description": "Test home page displays all demo options",
+                        "type": "manual",
+                        "details": "Verify home page shows all demo pages with descriptions"
+                    },
+                    {
+                        "id": "et1.3",
+                        "description": "Test reusable widgets render correctly",
+                        "type": "manual",
+                        "details": "Verify feature toggle panel, stamp info panel, and controller controls display properly"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "Home page exists with navigation to all demo pages",
+                    "Navigation works smoothly between pages",
+                    "Reusable widgets are created and functional",
+                    "Project structure is organized and scalable",
+                    "All pages are accessible from home page"
+                ]
+            },
+            {
+                "id": "example-phase-2",
+                "name": "Controller Demo Page",
+                "description": "Create comprehensive demo page for PdfStampEditorController API",
+                "priority": "high",
+                "estimatedEffort": "3-4 hours",
+                "dependencies": ["example-phase-1"],
+                "implemented": false,
+                "objectives": [
+                    "Demonstrate all PdfStampEditorController methods",
+                    "Show controller listener functionality",
+                    "Display controller state changes",
+                    "Test programmatic stamp manipulation"
+                ],
+                "tasks": [
+                    {
+                        "id": "e2.1",
+                        "description": "Create example/lib/pages/controller_demo_page.dart",
+                        "details": "Create page that uses PdfStampEditorController, displays controller state, and provides controls"
+                    },
+                    {
+                        "id": "e2.2",
+                        "description": "Implement controller initialization display",
+                        "details": "Show controller with empty list and with initial stamps, display current stamp count"
+                    },
+                    {
+                        "id": "e2.3",
+                        "description": "Implement programmatic stamp addition",
+                        "details": "Add buttons to add ImageStamp and TextStamp programmatically via controller.addStamp()"
+                    },
+                    {
+                        "id": "e2.4",
+                        "description": "Implement programmatic stamp update",
+                        "details": "Add button to update first stamp's position/size/rotation via controller.updateStamp()"
+                    },
+                    {
+                        "id": "e2.5",
+                        "description": "Implement programmatic stamp removal",
+                        "details": "Add buttons to remove last stamp and clear all stamps via controller methods"
+                    },
+                    {
+                        "id": "e2.6",
+                        "description": "Implement selection management",
+                        "details": "Add buttons for selectStamp(), selectStamp(toggle: true), clearSelection(), isSelected() display"
+                    },
+                    {
+                        "id": "e2.7",
+                        "description": "Implement delete selected stamps",
+                        "details": "Add button for deleteSelectedStamps() method"
+                    },
+                    {
+                        "id": "e2.8",
+                        "description": "Implement controller listener",
+                        "details": "Add listener to controller, display change log showing when controller notifies listeners"
+                    },
+                    {
+                        "id": "e2.9",
+                        "description": "Add controller state display panel",
+                        "details": "Create UI panel showing: stamp count, selected indices, current stamps list"
+                    },
+                    {
+                        "id": "e2.10",
+                        "description": "Add change log panel",
+                        "details": "Create scrollable log showing all controller change notifications with timestamps"
+                    },
+                    {
+                        "id": "e2.11",
+                        "description": "Integrate PdfStampEditorPage with controller",
+                        "details": "Pass controller to PdfStampEditorPage, verify widget responds to controller changes"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "et2.1",
+                        "description": "Test controller initialization",
+                        "type": "manual",
+                        "details": "Verify controller can be created empty and with initial stamps, state displays correctly"
+                    },
+                    {
+                        "id": "et2.2",
+                        "description": "Test addStamp() method",
+                        "type": "manual",
+                        "details": "Click add buttons, verify stamps appear in viewer and state panel, change log updates"
+                    },
+                    {
+                        "id": "et2.3",
+                        "description": "Test updateStamp() method",
+                        "type": "manual",
+                        "details": "Click update button, verify stamp changes in viewer, state panel updates, change log shows event"
+                    },
+                    {
+                        "id": "et2.4",
+                        "description": "Test removeStamp() and clearStamps() methods",
+                        "type": "manual",
+                        "details": "Click remove/clear buttons, verify stamps disappear, state updates, change log records events"
+                    },
+                    {
+                        "id": "et2.5",
+                        "description": "Test selectStamp() methods",
+                        "type": "manual",
+                        "details": "Click select buttons, verify selection state updates, visual feedback shows selected stamps"
+                    },
+                    {
+                        "id": "et2.6",
+                        "description": "Test deleteSelectedStamps() method",
+                        "type": "manual",
+                        "details": "Select stamps, click delete, verify stamps removed, selection cleared, change log updated"
+                    },
+                    {
+                        "id": "et2.7",
+                        "description": "Test controller listeners",
+                        "type": "manual",
+                        "details": "Perform controller operations, verify change log shows all notifications with timestamps"
+                    },
+                    {
+                        "id": "et2.8",
+                        "description": "Test controller with PdfStampEditorPage",
+                        "type": "manual",
+                        "details": "Verify widget updates when controller changes, stamps appear/disappear in viewer"
+                    },
+                    {
+                        "id": "et2.9",
+                        "description": "Test isSelected() method",
+                        "type": "manual",
+                        "details": "Select/deselect stamps, verify isSelected() returns correct values, UI reflects state"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "All controller methods are demonstrated with buttons/controls",
+                    "Controller state is displayed in real-time",
+                    "Change log shows all controller notifications",
+                    "PdfStampEditorPage responds to controller changes",
+                    "All controller API methods are accessible and testable",
+                    "UI is intuitive and clearly labeled",
+                    "Works on Android and iOS"
+                ]
+            },
+            {
+                "id": "example-phase-3",
+                "name": "Features Demo Page",
+                "description": "Create demo page for feature flags (enableDrag, enableResize, enableRotate, enableSelection)",
+                "priority": "high",
+                "estimatedEffort": "2-3 hours",
+                "dependencies": ["example-phase-1"],
+                "implemented": false,
+                "objectives": [
+                    "Demonstrate all feature flags",
+                    "Show individual feature behavior",
+                    "Test feature combinations",
+                    "Provide clear instructions for each feature"
+                ],
+                "tasks": [
+                    {
+                        "id": "e3.1",
+                        "description": "Create example/lib/pages/features_demo_page.dart",
+                        "details": "Create page with feature flag toggles and PdfStampEditorPage with configurable features"
+                    },
+                    {
+                        "id": "e3.2",
+                        "description": "Implement feature flag toggles UI",
+                        "details": "Add 4 switches for enableDrag, enableResize, enableRotate, enableSelection with labels"
+                    },
+                    {
+                        "id": "e3.3",
+                        "description": "Implement dynamic instructions panel",
+                        "details": "Create panel that shows instructions based on which features are enabled"
+                    },
+                    {
+                        "id": "e3.4",
+                        "description": "Add feature status indicators",
+                        "details": "Show visual indicators (icons, colors) for which features are currently enabled"
+                    },
+                    {
+                        "id": "e3.5",
+                        "description": "Add preset scenarios",
+                        "details": "Add buttons for common scenarios: 'Drag Only', 'Resize Only', 'Rotate Only', 'All Features', 'None'"
+                    },
+                    {
+                        "id": "e3.6",
+                        "description": "Integrate with PdfStampEditorPage",
+                        "details": "Pass feature flags to PdfStampEditorPage, ensure features enable/disable correctly"
+                    },
+                    {
+                        "id": "e3.7",
+                        "description": "Add test instructions",
+                        "details": "Add clear instructions for testing each feature: how to drag, resize, rotate, select"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "et3.1",
+                        "description": "Test enableDrag flag",
+                        "type": "manual",
+                        "details": "Toggle enableDrag, verify drag works when true, disabled when false, instructions update"
+                    },
+                    {
+                        "id": "et3.2",
+                        "description": "Test enableResize flag",
+                        "type": "manual",
+                        "details": "Toggle enableResize, verify pinch-to-resize works when true, disabled when false"
+                    },
+                    {
+                        "id": "et3.3",
+                        "description": "Test enableRotate flag",
+                        "type": "manual",
+                        "details": "Toggle enableRotate, verify rotation gesture works when true, disabled when false"
+                    },
+                    {
+                        "id": "et3.4",
+                        "description": "Test enableSelection flag",
+                        "type": "manual",
+                        "details": "Toggle enableSelection, verify tap-to-select works when true, disabled when false"
+                    },
+                    {
+                        "id": "et3.5",
+                        "description": "Test feature combinations",
+                        "type": "manual",
+                        "details": "Test various combinations: drag+resize, resize+rotate, all enabled, all disabled"
+                    },
+                    {
+                        "id": "et3.6",
+                        "description": "Test preset scenarios",
+                        "type": "manual",
+                        "details": "Click preset buttons, verify correct features enabled/disabled, instructions update"
+                    },
+                    {
+                        "id": "et3.7",
+                        "description": "Test instructions panel",
+                        "type": "manual",
+                        "details": "Toggle features, verify instructions panel updates to show how to use enabled features"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "All 4 feature flags have toggle switches",
+                    "Features enable/disable correctly in PdfStampEditorPage",
+                    "Instructions panel updates dynamically",
+                    "Preset scenarios work correctly",
+                    "Status indicators show current feature state",
+                    "Clear instructions for testing each feature",
+                    "Works on Android and iOS"
+                ]
+            },
+            {
+                "id": "example-phase-4",
+                "name": "Callbacks Demo Page",
+                "description": "Create demo page demonstrating all callback APIs",
+                "priority": "high",
+                "estimatedEffort": "2-3 hours",
+                "dependencies": ["example-phase-1"],
+                "implemented": false,
+                "objectives": [
+                    "Demonstrate all callback functions",
+                    "Log all callback events",
+                    "Show callback timing and data",
+                    "Display callback statistics"
+                ],
+                "tasks": [
+                    {
+                        "id": "e4.1",
+                        "description": "Create example/lib/pages/callbacks_demo_page.dart",
+                        "details": "Create page that implements all callbacks and logs events"
+                    },
+                    {
+                        "id": "e4.2",
+                        "description": "Implement onStampsChanged callback",
+                        "details": "Log when callback fires, display stamp count, show timestamp, increment counter"
+                    },
+                    {
+                        "id": "e4.3",
+                        "description": "Implement onStampSelected callback",
+                        "type": "manual",
+                        "details": "Log when stamp is selected, display selected index and stamp details, increment counter"
+                    },
+                    {
+                        "id": "e4.4",
+                        "description": "Implement onStampUpdated callback",
+                        "details": "Log when stamp is updated, display updated index and what changed, increment counter"
+                    },
+                    {
+                        "id": "e4.5",
+                        "description": "Implement onStampDeleted callback",
+                        "details": "Log when stamps are deleted, display deleted indices, increment counter"
+                    },
+                    {
+                        "id": "e4.6",
+                        "description": "Implement onTapDown callback",
+                        "details": "Log when tap occurs for stamp placement, show timestamp"
+                    },
+                    {
+                        "id": "e4.7",
+                        "description": "Implement onLongPressDown callback",
+                        "details": "Log when long press occurs for text stamp placement, show timestamp"
+                    },
+                    {
+                        "id": "e4.8",
+                        "description": "Create callback log panel",
+                        "details": "Create scrollable list showing all callback events with timestamps, event type, and data"
+                    },
+                    {
+                        "id": "e4.9",
+                        "description": "Create callback statistics panel",
+                        "details": "Display counters for each callback type: stampsChanged, selected, updated, deleted, tapDown, longPressDown"
+                    },
+                    {
+                        "id": "e4.10",
+                        "description": "Add clear log button",
+                        "details": "Add button to clear callback log and reset statistics"
+                    },
+                    {
+                        "id": "e4.11",
+                        "description": "Add stamp details panel",
+                        "details": "Show details of last selected/updated stamp in a panel"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "et4.1",
+                        "description": "Test onStampsChanged callback",
+                        "type": "manual",
+                        "details": "Add/remove stamps, verify callback fires, log shows events, counter increments"
+                    },
+                    {
+                        "id": "et4.2",
+                        "description": "Test onStampSelected callback",
+                        "type": "manual",
+                        "details": "Select stamps, verify callback fires with correct index and stamp, log shows events"
+                    },
+                    {
+                        "id": "et4.3",
+                        "description": "Test onStampUpdated callback",
+                        "type": "manual",
+                        "details": "Drag/resize/rotate stamps, verify callback fires, log shows update events with details"
+                    },
+                    {
+                        "id": "et4.4",
+                        "description": "Test onStampDeleted callback",
+                        "type": "manual",
+                        "details": "Delete stamps, verify callback fires with correct indices, log shows deletion events"
+                    },
+                    {
+                        "id": "et4.5",
+                        "description": "Test onTapDown callback",
+                        "type": "manual",
+                        "details": "Tap to place image stamp, verify callback fires, log shows tap event"
+                    },
+                    {
+                        "id": "et4.6",
+                        "description": "Test onLongPressDown callback",
+                        "type": "manual",
+                        "details": "Long press to place text stamp, verify callback fires, log shows long press event"
+                    },
+                    {
+                        "id": "et4.7",
+                        "description": "Test callback timing",
+                        "type": "manual",
+                        "details": "Perform rapid actions, verify callbacks fire in correct order, timestamps are accurate"
+                    },
+                    {
+                        "id": "et4.8",
+                        "description": "Test callback log panel",
+                        "type": "manual",
+                        "details": "Verify log scrolls, shows all events, clear button works, statistics update correctly"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "All 6 callbacks are implemented and functional",
+                    "Callback log shows all events with timestamps",
+                    "Statistics panel displays accurate counts",
+                    "Stamp details panel shows selected/updated stamp info",
+                    "Clear log button resets log and statistics",
+                    "Callbacks fire in correct order",
+                    "Works on Android and iOS"
+                ]
+            },
+            {
+                "id": "example-phase-5",
+                "name": "Custom Builder Demo Page",
+                "description": "Create demo page for custom stamp builder functionality",
+                "priority": "medium",
+                "estimatedEffort": "2-3 hours",
+                "dependencies": ["example-phase-1"],
+                "implemented": false,
+                "objectives": [
+                    "Demonstrate custom stampBuilder parameter",
+                    "Show custom rendering for ImageStamp",
+                    "Show custom rendering for TextStamp",
+                    "Provide examples of custom styling"
+                ],
+                "tasks": [
+                    {
+                        "id": "e5.1",
+                        "description": "Create example/lib/pages/custom_builder_demo_page.dart",
+                        "details": "Create page with toggle between default and custom stamp builder"
+                    },
+                    {
+                        "id": "e5.2",
+                        "description": "Implement custom ImageStamp builder",
+                        "details": "Create custom widget for ImageStamp with custom border, shadow, or styling"
+                    },
+                    {
+                        "id": "e5.3",
+                        "description": "Implement custom TextStamp builder",
+                        "details": "Create custom widget for TextStamp with custom font, color, or styling"
+                    },
+                    {
+                        "id": "e5.4",
+                        "description": "Add builder toggle switch",
+                        "details": "Add switch to toggle between default and custom builder, show difference"
+                    },
+                    {
+                        "id": "e5.5",
+                        "description": "Add multiple custom style examples",
+                        "details": "Provide 2-3 different custom builder examples (e.g., bordered, shadowed, animated)"
+                    },
+                    {
+                        "id": "e5.6",
+                        "description": "Add style selector",
+                        "details": "Add dropdown or buttons to select different custom builder styles"
+                    },
+                    {
+                        "id": "e5.7",
+                        "description": "Add instructions",
+                        "details": "Add instructions explaining custom builder usage and when to use it"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "et5.1",
+                        "description": "Test custom ImageStamp builder",
+                        "type": "manual",
+                        "details": "Enable custom builder, place image stamps, verify custom styling appears"
+                    },
+                    {
+                        "id": "et5.2",
+                        "description": "Test custom TextStamp builder",
+                        "type": "manual",
+                        "details": "Enable custom builder, place text stamps, verify custom styling appears"
+                    },
+                    {
+                        "id": "et5.3",
+                        "description": "Test builder toggle",
+                        "type": "manual",
+                        "details": "Toggle between default and custom, verify stamps switch styles correctly"
+                    },
+                    {
+                        "id": "et5.4",
+                        "description": "Test different custom styles",
+                        "type": "manual",
+                        "details": "Switch between custom style options, verify each style renders correctly"
+                    },
+                    {
+                        "id": "et5.5",
+                        "description": "Test custom builder with interactions",
+                        "type": "manual",
+                        "details": "Verify drag/resize/rotate work with custom builder, custom styling persists"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "Custom stampBuilder parameter is demonstrated",
+                    "Custom ImageStamp rendering works",
+                    "Custom TextStamp rendering works",
+                    "Toggle between default and custom works",
+                    "Multiple custom style examples provided",
+                    "Custom builder works with all interactions",
+                    "Works on Android and iOS"
+                ]
+            },
+            {
+                "id": "example-phase-6",
+                "name": "Utilities Demo Page",
+                "description": "Create demo page for coordinate converter and matrix calculator utilities",
+                "priority": "medium",
+                "estimatedEffort": "3-4 hours",
+                "dependencies": ["example-phase-1"],
+                "implemented": false,
+                "objectives": [
+                    "Demonstrate PdfCoordinateConverter utilities",
+                    "Show MatrixCalculator functionality",
+                    "Provide interactive coordinate conversion",
+                    "Test round-trip accuracy"
+                ],
+                "tasks": [
+                    {
+                        "id": "e6.1",
+                        "description": "Create example/lib/pages/utilities_demo_page.dart",
+                        "details": "Create page with PDF viewer and interactive coordinate conversion tools"
+                    },
+                    {
+                        "id": "e6.2",
+                        "description": "Implement viewerOffsetToPdfPoint demo",
+                        "details": "Show tap position on PDF, convert to PDF coordinates, display result, test with different page rotations"
+                    },
+                    {
+                        "id": "e6.3",
+                        "description": "Implement pdfPointToViewerOffset demo",
+                        "details": "Input PDF coordinates, convert to screen position, show marker on PDF, test round-trip accuracy"
+                    },
+                    {
+                        "id": "e6.4",
+                        "description": "Implement pageScaleFactors demo",
+                        "details": "Display scale factors for current page, show how they change with zoom, display sx and sy values"
+                    },
+                    {
+                        "id": "e6.5",
+                        "description": "Implement rotationToDegrees demo",
+                        "details": "Show conversion of PdfPageRotation enum to degrees, test with 0°, 90°, 180°, 270°"
+                    },
+                    {
+                        "id": "e6.6",
+                        "description": "Implement MatrixCalculator demo",
+                        "details": "Create stamps, calculate transformation matrices, display matrix values, show matrix for different configurations"
+                    },
+                    {
+                        "id": "e6.7",
+                        "description": "Add coordinate input fields",
+                        "details": "Add text fields to input PDF coordinates, convert and display screen position"
+                    },
+                    {
+                        "id": "e6.8",
+                        "description": "Add interactive coordinate display",
+                        "details": "Show current tap position, converted coordinates, and visual markers on PDF"
+                    },
+                    {
+                        "id": "e6.9",
+                        "description": "Add matrix display widget",
+                        "details": "Create widget to display TransformationMatrix values in readable format"
+                    },
+                    {
+                        "id": "e6.10",
+                        "description": "Add test scenarios",
+                        "details": "Add buttons for common test scenarios: test with rotated pages, test edge coordinates, test round-trip"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "et6.1",
+                        "description": "Test viewerOffsetToPdfPoint",
+                        "type": "manual",
+                        "details": "Tap on PDF, verify screen coordinates convert to PDF coordinates correctly, test with rotated pages"
+                    },
+                    {
+                        "id": "et6.2",
+                        "description": "Test pdfPointToViewerOffset",
+                        "type": "manual",
+                        "details": "Input PDF coordinates, verify conversion to screen position, marker appears at correct location"
+                    },
+                    {
+                        "id": "et6.3",
+                        "description": "Test round-trip accuracy",
+                        "type": "manual",
+                        "details": "Convert screen→PDF→screen, verify original and final positions match (within tolerance)"
+                    },
+                    {
+                        "id": "et6.4",
+                        "description": "Test pageScaleFactors",
+                        "type": "manual",
+                        "details": "Zoom PDF, verify scale factors update correctly, values are reasonable"
+                    },
+                    {
+                        "id": "et6.5",
+                        "description": "Test rotationToDegrees",
+                        "type": "manual",
+                        "details": "Load PDFs with different rotations, verify enum converts to correct degrees"
+                    },
+                    {
+                        "id": "et6.6",
+                        "description": "Test MatrixCalculator",
+                        "type": "manual",
+                        "details": "Create stamps with different positions/sizes/rotations, verify matrices calculate correctly"
+                    },
+                    {
+                        "id": "et6.7",
+                        "description": "Test with edge cases",
+                        "type": "manual",
+                        "details": "Test coordinates at page edges, zero coordinates, negative coordinates, very large coordinates"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "All PdfCoordinateConverter methods are demonstrated",
+                    "MatrixCalculator is demonstrated",
+                    "Interactive coordinate conversion works",
+                    "Round-trip accuracy is verified",
+                    "Matrix display is readable and accurate",
+                    "Test scenarios work correctly",
+                    "Works on Android and iOS"
+                ]
+            },
+            {
+                "id": "example-phase-7",
+                "name": "Full Feature Demo Page",
+                "description": "Create comprehensive demo page with all features enabled and complete workflow",
+                "priority": "high",
+                "estimatedEffort": "2-3 hours",
+                "dependencies": ["example-phase-2", "example-phase-3", "example-phase-4"],
+                "implemented": false,
+                "objectives": [
+                    "Demonstrate complete integration of all features",
+                    "Show complete workflow from placement to export",
+                    "Test all features working together",
+                    "Provide comprehensive testing scenario"
+                ],
+                "tasks": [
+                    {
+                        "id": "e7.1",
+                        "description": "Create example/lib/pages/full_feature_demo_page.dart",
+                        "details": "Create page with all features enabled: controller, all feature flags, all callbacks"
+                    },
+                    {
+                        "id": "e7.2",
+                        "description": "Enable all features",
+                        "details": "Set enableDrag=true, enableResize=true, enableRotate=true, enableSelection=true"
+                    },
+                    {
+                        "id": "e7.3",
+                        "description": "Implement controller",
+                        "details": "Use PdfStampEditorController, connect all controller operations"
+                    },
+                    {
+                        "id": "e7.4",
+                        "description": "Implement all callbacks",
+                        "details": "Implement all 6 callbacks with logging/feedback"
+                    },
+                    {
+                        "id": "e7.5",
+                        "description": "Add workflow step indicator",
+                        "details": "Create UI showing workflow steps: Load PDF → Load PNG → Place → Drag → Resize → Rotate → Select → Delete → Export"
+                    },
+                    {
+                        "id": "e7.6",
+                        "description": "Add comprehensive controls",
+                        "details": "Include all controls from other pages: feature toggles, controller buttons, export button"
+                    },
+                    {
+                        "id": "e7.7",
+                        "description": "Add workflow instructions",
+                        "details": "Add step-by-step instructions for complete workflow testing"
+                    },
+                    {
+                        "id": "e7.8",
+                        "description": "Add export verification",
+                        "details": "After export, show option to reload exported PDF and verify stamps are embedded"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "et7.1",
+                        "description": "Test complete workflow",
+                        "type": "manual",
+                        "details": "Follow workflow: load PDF, load PNG, place stamps, drag, resize, rotate, select, delete, export. Verify each step works"
+                    },
+                    {
+                        "id": "et7.2",
+                        "description": "Test all features together",
+                        "type": "manual",
+                        "details": "Use drag, resize, rotate, selection simultaneously, verify no conflicts, all work correctly"
+                    },
+                    {
+                        "id": "et7.3",
+                        "description": "Test controller with all features",
+                        "type": "manual",
+                        "details": "Use controller operations while features are enabled, verify controller and gestures work together"
+                    },
+                    {
+                        "id": "et7.4",
+                        "description": "Test callbacks with all features",
+                        "type": "manual",
+                        "details": "Perform all actions, verify all callbacks fire correctly, no missing events"
+                    },
+                    {
+                        "id": "et7.5",
+                        "description": "Test export with all features",
+                        "type": "manual",
+                        "details": "After using all features, export PDF, reload exported PDF, verify all stamps are correctly embedded"
+                    },
+                    {
+                        "id": "et7.6",
+                        "description": "Test edge cases in full feature mode",
+                        "type": "manual",
+                        "details": "Test with many stamps, multiple pages, rapid interactions, verify performance and stability"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "All features work together without conflicts",
+                    "Complete workflow is functional",
+                    "Controller works with all features enabled",
+                    "All callbacks fire correctly",
+                    "Export produces correct PDF with all stamps",
+                    "Workflow instructions are clear",
+                    "Works on Android and iOS"
+                ]
+            },
+            {
+                "id": "example-phase-8",
+                "name": "Enhanced Basic Demo Page",
+                "description": "Enhance existing basic demo page with better UI and documentation",
+                "priority": "low",
+                "estimatedEffort": "1-2 hours",
+                "dependencies": ["example-phase-1"],
+                "implemented": false,
+                "objectives": [
+                    "Improve existing basic demo page",
+                    "Add better documentation and instructions",
+                    "Add visual feedback",
+                    "Maintain backward compatibility"
+                ],
+                "tasks": [
+                    {
+                        "id": "e8.1",
+                        "description": "Rename current main.dart demo to basic_demo_page.dart",
+                        "details": "Move current StampDemoPage to pages/basic_demo_page.dart, keep functionality"
+                    },
+                    {
+                        "id": "e8.2",
+                        "description": "Add instructions panel",
+                        "details": "Add panel explaining what the basic demo shows and how to use it"
+                    },
+                    {
+                        "id": "e8.3",
+                        "description": "Add visual feedback",
+                        "details": "Add success messages, error handling, better snackbar messages"
+                    },
+                    {
+                        "id": "e8.4",
+                        "description": "Add stamp count display",
+                        "details": "Show current number of stamps placed"
+                    },
+                    {
+                        "id": "e8.5",
+                        "description": "Improve export feedback",
+                        "details": "Show export progress, success message with file path, error messages"
+                    },
+                    {
+                        "id": "e8.6",
+                        "description": "Add comments to code",
+                        "details": "Add comments explaining what each part demonstrates"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "et8.1",
+                        "description": "Test enhanced basic demo",
+                        "type": "manual",
+                        "details": "Verify all original functionality still works, new UI elements display correctly"
+                    },
+                    {
+                        "id": "et8.2",
+                        "description": "Test instructions panel",
+                        "type": "manual",
+                        "details": "Verify instructions are clear and helpful"
+                    },
+                    {
+                        "id": "et8.3",
+                        "description": "Test visual feedback",
+                        "type": "manual",
+                        "details": "Verify feedback messages appear correctly for all actions"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "Original functionality preserved",
+                    "Instructions panel added",
+                    "Visual feedback improved",
+                    "Code is well-commented",
+                    "UI is more user-friendly",
+                    "Works on Android and iOS"
+                ]
+            },
+            {
+                "id": "example-phase-9",
+                "name": "Edge Cases and Performance Testing",
+                "description": "Add testing scenarios for edge cases and performance",
+                "priority": "medium",
+                "estimatedEffort": "2-3 hours",
+                "dependencies": ["example-phase-7"],
+                "implemented": false,
+                "objectives": [
+                    "Test with many stamps",
+                    "Test multi-page scenarios",
+                    "Test edge cases",
+                    "Verify performance"
+                ],
+                "tasks": [
+                    {
+                        "id": "e9.1",
+                        "description": "Add 'Generate Many Stamps' button",
+                        "details": "Add button to programmatically create 50+ stamps for performance testing"
+                    },
+                    {
+                        "id": "e9.2",
+                        "description": "Add multi-page PDF test",
+                        "details": "Provide test PDF with multiple pages, test stamps on different pages"
+                    },
+                    {
+                        "id": "e9.3",
+                        "description": "Add edge case test scenarios",
+                        "details": "Add buttons for: stamps at page edges, overlapping stamps, very large stamps, very small stamps"
+                    },
+                    {
+                        "id": "e9.4",
+                        "description": "Add performance monitoring",
+                        "details": "Display FPS or performance metrics during interactions with many stamps"
+                    },
+                    {
+                        "id": "e9.5",
+                        "description": "Add stress test mode",
+                        "details": "Add mode that creates many stamps and tests all interactions, verify stability"
+                    },
+                    {
+                        "id": "e9.6",
+                        "description": "Add rotated page test",
+                        "details": "Provide test PDF with rotated pages, verify all features work with rotated pages"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "et9.1",
+                        "description": "Test with many stamps",
+                        "type": "manual",
+                        "details": "Generate 50+ stamps, verify performance is acceptable, all interactions work, no crashes"
+                    },
+                    {
+                        "id": "et9.2",
+                        "description": "Test multi-page scenarios",
+                        "type": "manual",
+                        "details": "Place stamps on different pages, verify page navigation works, stamps stay on correct pages"
+                    },
+                    {
+                        "id": "et9.3",
+                        "description": "Test edge cases",
+                        "type": "manual",
+                        "details": "Test edge case scenarios, verify app handles them gracefully, no crashes or errors"
+                    },
+                    {
+                        "id": "et9.4",
+                        "description": "Test performance",
+                        "type": "manual",
+                        "details": "Monitor performance with many stamps, verify smooth 60fps, no lag during interactions"
+                    },
+                    {
+                        "id": "et9.5",
+                        "description": "Test stress scenarios",
+                        "type": "manual",
+                        "details": "Run stress test mode, verify app remains stable, all features continue to work"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "Many stamps (50+) can be created and manipulated",
+                    "Multi-page scenarios work correctly",
+                    "Edge cases are handled gracefully",
+                    "Performance is acceptable (smooth interactions)",
+                    "Stress tests don't crash the app",
+                    "Works on Android and iOS"
+                ]
+            }
+        ],
+        "summary": {
+            "totalPhases": 9,
+            "estimatedTotalEffort": "18-26 hours",
+            "phasesCompleted": 0,
+            "phasesRemaining": 9,
+            "currentPhase": null,
+            "blockers": [],
+            "coverage": {
+                "currentCoverage": 0.15,
+                "targetCoverage": 1.0,
+                "apisToDemonstrate": [
+                    "PdfStampEditorController (all methods)",
+                    "PdfStampEditorPage (all parameters)",
+                    "PdfCoordinateConverter (all methods)",
+                    "MatrixCalculator (all methods)",
+                    "PdfiumStamper (export)",
+                    "ImageStamp.copyWith()",
+                    "TextStamp.copyWith()",
+                    "All callbacks (6 total)",
+                    "All feature flags (4 total)"
+                ]
+            }
+        }
+    }
+}
+
