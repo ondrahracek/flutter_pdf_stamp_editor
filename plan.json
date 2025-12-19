@@ -1,0 +1,720 @@
+{
+    "plan": {
+        "name": "Drag, Resize, and Rotate Stamps Implementation",
+        "version": "1.0.0",
+        "description": "Multi-phase plan to add interactive stamp editing (drag, resize, rotate) to pdf_stamp_editor package",
+        "created": "2024-01-01",
+        "lastUpdated": "2024-01-01",
+        "defaults": {
+            "implemented": false,
+            "testCoverageRequired": 0.8,
+            "requiresBackwardCompatibility": true,
+            "followTDD": true
+        },
+        "rules": {
+            "implementationStatus": {
+                "description": "Each phase must have 'implemented' field set to false initially. When phase is complete and tested, set to true.",
+                "validation": "Before marking implemented: true, ensure all tests pass, code is reviewed, and documentation is updated"
+            },
+            "testing": {
+                "description": "All phases must include comprehensive tests. Follow TDD (Test-Driven Development) approach.",
+                "requirements": [
+                    "Write failing tests first",
+                    "Implement minimum code to pass",
+                    "Refactor and improve",
+                    "Achieve at least 80% test coverage for new code"
+                ]
+            },
+            "backwardCompatibility": {
+                "description": "All changes must maintain backward compatibility with existing API",
+                "requirements": [
+                    "Existing PdfStampEditorPage widget must continue to work",
+                    "New features should be opt-in via optional parameters",
+                    "No breaking changes to exported APIs"
+                ]
+            },
+            "codeQuality": {
+                "description": "Follow existing code patterns and style",
+                "requirements": [
+                    "Use sealed classes for stamp types",
+                    "Keep coordinate conversion logic pure (no side effects)",
+                    "Document public APIs",
+                    "Follow Flutter best practices"
+                ]
+            }
+        },
+        "phases": [
+            {
+                "id": "phase-1",
+                "name": "Export Coordinate Conversion Utilities",
+                "description": "Extract and export coordinate conversion functions to enable custom UI implementations",
+                "priority": "high",
+                "estimatedEffort": "2-4 hours",
+                "dependencies": [],
+                "implemented": true,
+                "objectives": [
+                    "Extract private coordinate conversion functions from PdfStampEditorPage",
+                    "Create PdfCoordinateConverter utility class",
+                    "Export coordinate converter for public use",
+                    "Maintain existing functionality while making utilities reusable"
+                ],
+                "tasks": [
+                    {
+                        "id": "1.1",
+                        "description": "Create lib/src/utils/coordinate_converter.dart",
+                        "details": "Extract _pdfPointToViewerOffset, _viewerOffsetToPdfPoint, _pageScaleFactors, and rotationToDegrees functions"
+                    },
+                    {
+                        "id": "1.2",
+                        "description": "Export coordinate converter from lib/pdf_stamp_editor.dart",
+                        "details": "Add export statement for the new utility"
+                    },
+                    {
+                        "id": "1.3",
+                        "description": "Update PdfStampEditorPage to use exported utilities",
+                        "details": "Refactor widget to use PdfCoordinateConverter instead of private functions"
+                    },
+                    {
+                        "id": "1.4",
+                        "description": "Update documentation",
+                        "details": "Add coordinate converter to README with usage examples"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "t1.1",
+                        "description": "Test viewerOffsetToPdfPoint conversion",
+                        "type": "unit",
+                        "details": "Test converting screen coordinates to PDF coordinates for various page rotations (0°, 90°, 180°, 270°)"
+                    },
+                    {
+                        "id": "t1.2",
+                        "description": "Test pdfPointToViewerOffset conversion",
+                        "type": "unit",
+                        "details": "Test converting PDF coordinates to screen coordinates, verify round-trip accuracy"
+                    },
+                    {
+                        "id": "t1.3",
+                        "description": "Test pageScaleFactors calculation",
+                        "type": "unit",
+                        "details": "Test scale factor calculation for different page sizes and rotations"
+                    },
+                    {
+                        "id": "t1.4",
+                        "description": "Test rotationToDegrees helper",
+                        "type": "unit",
+                        "details": "Test conversion of PdfPageRotation enum and int values to degrees"
+                    },
+                    {
+                        "id": "t1.5",
+                        "description": "Test coordinate converter with edge cases",
+                        "type": "unit",
+                        "details": "Test with zero coordinates, negative coordinates, very large coordinates, edge of page boundaries"
+                    },
+                    {
+                        "id": "t1.6",
+                        "description": "Regression test: PdfStampEditorPage still works",
+                        "type": "widget",
+                        "details": "Verify existing widget tests still pass after refactoring"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "PdfCoordinateConverter class is exported and usable",
+                    "All coordinate conversion functions are public and documented",
+                    "Existing PdfStampEditorPage functionality unchanged",
+                    "All tests pass (new + existing)",
+                    "Code coverage >= 80% for new utilities"
+                ]
+            },
+            {
+                "id": "phase-2",
+                "name": "Stamp Controller for State Management",
+                "description": "Create controller class for managing stamp state programmatically",
+                "priority": "high",
+                "estimatedEffort": "3-5 hours",
+                "dependencies": [
+                    "phase-1"
+                ],
+                "implemented": true,
+                "objectives": [
+                    "Create PdfStampEditorController for managing stamp list",
+                    "Enable programmatic stamp manipulation (add, update, remove)",
+                    "Support listeners for state changes",
+                    "Make stamps mutable for interactive editing"
+                ],
+                "tasks": [
+                    {
+                        "id": "2.1",
+                        "description": "Create lib/src/controller/pdf_stamp_editor_controller.dart",
+                        "details": "Implement controller with List<PdfStamp>, add/update/remove methods, and ChangeNotifier pattern"
+                    },
+                    {
+                        "id": "2.2",
+                        "description": "Add copyWith methods to PdfStamp classes",
+                        "details": "Make ImageStamp and TextStamp support immutable updates (or create mutable wrapper)"
+                    },
+                    {
+                        "id": "2.3",
+                        "description": "Export controller from lib/pdf_stamp_editor.dart",
+                        "details": "Add export statement"
+                    },
+                    {
+                        "id": "2.4",
+                        "description": "Update PdfStampEditorPage to optionally use controller",
+                        "details": "Add optional controller parameter, maintain backward compatibility with internal state"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "t2.1",
+                        "description": "Test controller initialization",
+                        "type": "unit",
+                        "details": "Test creating controller with empty and pre-populated stamp lists"
+                    },
+                    {
+                        "id": "t2.2",
+                        "description": "Test adding stamps",
+                        "type": "unit",
+                        "details": "Test addStamp method with ImageStamp and TextStamp"
+                    },
+                    {
+                        "id": "t2.3",
+                        "description": "Test updating stamps",
+                        "type": "unit",
+                        "details": "Test updateStamp method updates position, size, rotation correctly"
+                    },
+                    {
+                        "id": "t2.4",
+                        "description": "Test removing stamps",
+                        "type": "unit",
+                        "details": "Test removeStamp and clearStamps methods"
+                    },
+                    {
+                        "id": "t2.5",
+                        "description": "Test controller listeners",
+                        "type": "unit",
+                        "details": "Test that listeners are notified on state changes"
+                    },
+                    {
+                        "id": "t2.6",
+                        "description": "Test stamp copyWith methods",
+                        "type": "unit",
+                        "details": "Test ImageStamp.copyWith and TextStamp.copyWith create new instances with updated values"
+                    },
+                    {
+                        "id": "t2.7",
+                        "description": "Test controller with PdfStampEditorPage",
+                        "type": "widget",
+                        "details": "Test widget works with external controller"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "PdfStampEditorController class is exported and functional",
+                    "Controller supports add, update, remove, clear operations",
+                    "Controller notifies listeners on changes",
+                    "Stamps support immutable updates via copyWith",
+                    "PdfStampEditorPage works with or without controller (backward compatible)",
+                    "All tests pass",
+                    "Code coverage >= 80%"
+                ]
+            },
+            {
+                "id": "phase-3",
+                "name": "Draggable Stamp Widget",
+                "description": "Create draggable stamp widget that allows users to drag stamps on PDF pages",
+                "priority": "high",
+                "estimatedEffort": "4-6 hours",
+                "dependencies": [
+                    "phase-1",
+                    "phase-2"
+                ],
+                "implemented": true,
+                "objectives": [
+                    "Create DraggableStampWidget that responds to drag gestures",
+                    "Update stamp position in real-time during drag",
+                    "Convert screen coordinates to PDF coordinates correctly",
+                    "Handle multi-page scenarios",
+                    "Maintain stamp selection state"
+                ],
+                "tasks": [
+                    {
+                        "id": "3.1",
+                        "description": "Create lib/src/ui/draggable_stamp_widget.dart",
+                        "details": "Implement widget with GestureDetector, onPanStart, onPanUpdate, onPanEnd handlers"
+                    },
+                    {
+                        "id": "3.2",
+                        "description": "Implement drag gesture handling",
+                        "details": "Track drag offset, convert to PDF coordinates, update stamp position via controller"
+                    },
+                    {
+                        "id": "3.3",
+                        "description": "Add visual feedback during drag",
+                        "details": "Show stamp being dragged (optional: opacity change, shadow, etc.)"
+                    },
+                    {
+                        "id": "3.4",
+                        "description": "Integrate into PdfStampEditorPage",
+                        "details": "Replace static stamp rendering with DraggableStampWidget, make it optional via parameter"
+                    },
+                    {
+                        "id": "3.5",
+                        "description": "Handle edge cases",
+                        "details": "Prevent dragging outside page bounds, handle page rotation correctly"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "t3.1",
+                        "description": "Test drag gesture detection",
+                        "type": "widget",
+                        "details": "Verify GestureDetector responds to pan gestures on stamp"
+                    },
+                    {
+                        "id": "t3.2",
+                        "description": "Test drag updates stamp position",
+                        "type": "widget",
+                        "details": "Drag stamp and verify controller receives updated position in PDF coordinates"
+                    },
+                    {
+                        "id": "t3.3",
+                        "description": "Test coordinate conversion during drag",
+                        "type": "widget",
+                        "details": "Verify screen drag offset correctly converts to PDF point changes"
+                    },
+                    {
+                        "id": "t3.4",
+                        "description": "Test drag with page rotation",
+                        "type": "widget",
+                        "details": "Test dragging works correctly on rotated PDF pages (90°, 180°, 270°)"
+                    },
+                    {
+                        "id": "t3.5",
+                        "description": "Test drag boundary constraints",
+                        "type": "widget",
+                        "details": "Verify stamp cannot be dragged outside page boundaries"
+                    },
+                    {
+                        "id": "t3.6",
+                        "description": "Test drag on different pages",
+                        "type": "widget",
+                        "details": "Verify dragging only affects stamps on current page"
+                    },
+                    {
+                        "id": "t3.7",
+                        "description": "Test drag with multiple stamps",
+                        "type": "widget",
+                        "details": "Verify dragging one stamp doesn't affect others"
+                    },
+                    {
+                        "id": "t3.8",
+                        "description": "Test drag cancellation",
+                        "type": "widget",
+                        "details": "Test that cancelled drag (onPanCancel) doesn't update position"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "DraggableStampWidget responds to drag gestures",
+                    "Stamp position updates in real-time during drag",
+                    "Coordinates convert correctly (screen ↔ PDF)",
+                    "Works with rotated PDF pages",
+                    "Respects page boundaries",
+                    "All tests pass",
+                    "Code coverage >= 80%",
+                    "Backward compatible (drag is opt-in)"
+                ]
+            },
+            {
+                "id": "phase-4",
+                "name": "Resizable Stamp Widget",
+                "description": "Add resize functionality to stamps using pinch/scale gestures",
+                "priority": "medium",
+                "estimatedEffort": "4-6 hours",
+                "dependencies": [
+                    "phase-1",
+                    "phase-2",
+                    "phase-3"
+                ],
+                "implemented": true,
+                "objectives": [
+                    "Add resize handles or pinch-to-zoom for stamps",
+                    "Update stamp width/height during resize",
+                    "Maintain aspect ratio option",
+                    "Handle minimum/maximum size constraints",
+                    "Convert screen scale to PDF point dimensions"
+                ],
+                "tasks": [
+                    {
+                        "id": "4.1",
+                        "description": "Add resize gesture handling to DraggableStampWidget",
+                        "details": "Implement ScaleGestureRecognizer or resize handles at corners/edges"
+                    },
+                    {
+                        "id": "4.2",
+                        "description": "Implement scale-to-size conversion",
+                        "details": "Convert gesture scale factor to PDF point width/height changes"
+                    },
+                    {
+                        "id": "4.3",
+                        "description": "Add aspect ratio preservation option",
+                        "details": "Allow users to maintain or change aspect ratio during resize"
+                    },
+                    {
+                        "id": "4.4",
+                        "description": "Add size constraints",
+                        "details": "Enforce minimum and maximum stamp sizes"
+                    },
+                    {
+                        "id": "4.5",
+                        "description": "Add visual resize handles (optional)",
+                        "details": "Show corner/edge handles when stamp is selected (optional enhancement)"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "t4.1",
+                        "description": "Test scale gesture detection",
+                        "type": "widget",
+                        "details": "Verify ScaleGestureRecognizer responds to pinch gestures"
+                    },
+                    {
+                        "id": "t4.2",
+                        "description": "Test resize updates stamp dimensions",
+                        "type": "widget",
+                        "details": "Scale stamp and verify width/height update in PDF points"
+                    },
+                    {
+                        "id": "t4.3",
+                        "description": "Test aspect ratio preservation",
+                        "type": "widget",
+                        "details": "Test resize with and without aspect ratio lock"
+                    },
+                    {
+                        "id": "t4.4",
+                        "description": "Test size constraints",
+                        "type": "widget",
+                        "details": "Verify minimum and maximum size limits are enforced"
+                    },
+                    {
+                        "id": "t4.5",
+                        "description": "Test resize with rotation",
+                        "type": "widget",
+                        "details": "Verify resizing rotated stamps works correctly"
+                    },
+                    {
+                        "id": "t4.6",
+                        "description": "Test resize coordinate conversion",
+                        "type": "widget",
+                        "details": "Verify screen scale correctly converts to PDF point dimensions"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "Stamps can be resized via pinch/scale gesture",
+                    "Stamp dimensions update correctly in PDF coordinates",
+                    "Aspect ratio preservation works (when enabled)",
+                    "Size constraints are enforced",
+                    "Works with rotated stamps",
+                    "All tests pass",
+                    "Code coverage >= 80%"
+                ]
+            },
+            {
+                "id": "phase-5",
+                "name": "Rotatable Stamp Widget",
+                "description": "Add rotation functionality to stamps using rotation gestures",
+                "priority": "medium",
+                "estimatedEffort": "3-5 hours",
+                "dependencies": [
+                    "phase-1",
+                    "phase-2",
+                    "phase-3"
+                ],
+                "implemented": false,
+                "objectives": [
+                    "Add rotation gesture handling to stamps",
+                    "Update stamp rotation angle in real-time",
+                    "Convert gesture rotation to degrees",
+                    "Handle rotation around stamp center",
+                    "Support rotation snapping (optional)"
+                ],
+                "tasks": [
+                    {
+                        "id": "5.1",
+                        "description": "Add rotation gesture handling",
+                        "details": "Implement rotation gesture (two-finger rotation or dedicated rotation handle)"
+                    },
+                    {
+                        "id": "5.2",
+                        "description": "Implement rotation angle calculation",
+                        "details": "Calculate rotation delta from gesture, convert to degrees, update stamp"
+                    },
+                    {
+                        "id": "5.3",
+                        "description": "Handle rotation around center point",
+                        "details": "Ensure stamp rotates around its center, not corner"
+                    },
+                    {
+                        "id": "5.4",
+                        "description": "Add rotation snapping (optional)",
+                        "details": "Snap to 15° or 45° increments when enabled"
+                    },
+                    {
+                        "id": "5.5",
+                        "description": "Update visual feedback",
+                        "details": "Show rotation angle or handle during rotation"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "t5.1",
+                        "description": "Test rotation gesture detection",
+                        "type": "widget",
+                        "details": "Verify rotation gesture is detected on stamp"
+                    },
+                    {
+                        "id": "t5.2",
+                        "description": "Test rotation updates stamp angle",
+                        "type": "widget",
+                        "details": "Rotate stamp and verify rotationDeg updates correctly"
+                    },
+                    {
+                        "id": "t5.3",
+                        "description": "Test rotation around center",
+                        "type": "widget",
+                        "details": "Verify stamp rotates around center point, position doesn't change"
+                    },
+                    {
+                        "id": "t5.4",
+                        "description": "Test rotation angle conversion",
+                        "type": "widget",
+                        "details": "Verify gesture rotation correctly converts to degrees (0-360 range)"
+                    },
+                    {
+                        "id": "t5.5",
+                        "description": "Test rotation snapping",
+                        "type": "widget",
+                        "details": "Test rotation snaps to increments when enabled"
+                    },
+                    {
+                        "id": "t5.6",
+                        "description": "Test rotation with resized stamps",
+                        "type": "widget",
+                        "details": "Verify rotation works correctly with non-square stamps"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "Stamps can be rotated via gesture",
+                    "Rotation angle updates correctly in degrees",
+                    "Rotation occurs around stamp center",
+                    "Rotation snapping works (when enabled)",
+                    "Works with resized stamps",
+                    "All tests pass",
+                    "Code coverage >= 80%"
+                ]
+            },
+            {
+                "id": "phase-6",
+                "name": "Stamp Selection and Multi-Gesture Support",
+                "description": "Add stamp selection and support for combined gestures (drag + resize, etc.)",
+                "priority": "medium",
+                "estimatedEffort": "4-6 hours",
+                "dependencies": [
+                    "phase-3",
+                    "phase-4",
+                    "phase-5"
+                ],
+                "implemented": false,
+                "objectives": [
+                    "Implement stamp selection (tap to select)",
+                    "Support multiple selected stamps",
+                    "Handle gesture conflicts (drag vs resize vs rotate)",
+                    "Add visual selection indicators",
+                    "Support delete selected stamps"
+                ],
+                "tasks": [
+                    {
+                        "id": "6.1",
+                        "description": "Implement stamp selection state",
+                        "details": "Add selection tracking to controller, handle single/multi-select"
+                    },
+                    {
+                        "id": "6.2",
+                        "description": "Add tap-to-select gesture",
+                        "details": "Detect taps on stamps, update selection state"
+                    },
+                    {
+                        "id": "6.3",
+                        "description": "Handle gesture priority",
+                        "details": "Determine which gesture takes precedence (drag vs resize vs rotate)"
+                    },
+                    {
+                        "id": "6.4",
+                        "description": "Add visual selection feedback",
+                        "details": "Show selection border, handles, or highlight on selected stamps"
+                    },
+                    {
+                        "id": "6.5",
+                        "description": "Implement delete functionality",
+                        "details": "Allow deleting selected stamps (backspace/delete key or button)"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "t6.1",
+                        "description": "Test stamp selection",
+                        "type": "widget",
+                        "details": "Tap stamp and verify it becomes selected"
+                    },
+                    {
+                        "id": "t6.2",
+                        "description": "Test multi-select",
+                        "type": "widget",
+                        "details": "Test selecting multiple stamps (with modifier key or long-press)"
+                    },
+                    {
+                        "id": "t6.3",
+                        "description": "Test gesture priority",
+                        "type": "widget",
+                        "details": "Test that appropriate gesture is recognized (drag vs resize vs rotate)"
+                    },
+                    {
+                        "id": "t6.4",
+                        "description": "Test selection visual feedback",
+                        "type": "widget",
+                        "details": "Verify selected stamps show visual indicator"
+                    },
+                    {
+                        "id": "t6.5",
+                        "description": "Test delete selected stamps",
+                        "type": "widget",
+                        "details": "Select stamp and delete, verify it's removed from controller"
+                    },
+                    {
+                        "id": "t6.6",
+                        "description": "Test deselect on background tap",
+                        "type": "widget",
+                        "details": "Tap empty area and verify selection is cleared"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "Stamps can be selected via tap",
+                    "Multiple stamps can be selected",
+                    "Gesture conflicts are resolved correctly",
+                    "Visual selection feedback is clear",
+                    "Selected stamps can be deleted",
+                    "All tests pass",
+                    "Code coverage >= 80%"
+                ]
+            },
+            {
+                "id": "phase-7",
+                "name": "Integration and Polish",
+                "description": "Integrate all features, add customization options, and polish the implementation",
+                "priority": "low",
+                "estimatedEffort": "4-8 hours",
+                "dependencies": [
+                    "phase-3",
+                    "phase-4",
+                    "phase-5",
+                    "phase-6"
+                ],
+                "implemented": false,
+                "objectives": [
+                    "Integrate all interactive features into PdfStampEditorPage",
+                    "Add customization options (enable/disable features)",
+                    "Improve performance and smoothness",
+                    "Add comprehensive documentation",
+                    "Update examples and README"
+                ],
+                "tasks": [
+                    {
+                        "id": "7.1",
+                        "description": "Add feature flags to PdfStampEditorPage",
+                        "details": "Add enableDrag, enableResize, enableRotate, enableSelection parameters"
+                    },
+                    {
+                        "id": "7.2",
+                        "description": "Optimize gesture handling performance",
+                        "details": "Ensure smooth 60fps during gestures, optimize coordinate conversions"
+                    },
+                    {
+                        "id": "7.3",
+                        "description": "Add customization callbacks",
+                        "details": "Add onStampSelected, onStampUpdated, onStampDeleted callbacks"
+                    },
+                    {
+                        "id": "7.4",
+                        "description": "Add stamp builder for custom rendering",
+                        "details": "Allow custom stamp widget builder for advanced customization"
+                    },
+                    {
+                        "id": "7.5",
+                        "description": "Update documentation",
+                        "details": "Update README with new features, add usage examples, API documentation"
+                    },
+                    {
+                        "id": "7.6",
+                        "description": "Update example app",
+                        "details": "Demonstrate drag, resize, rotate features in example"
+                    },
+                    {
+                        "id": "7.7",
+                        "description": "Performance testing",
+                        "details": "Test with many stamps (50+), ensure performance is acceptable"
+                    }
+                ],
+                "tests": [
+                    {
+                        "id": "t7.1",
+                        "description": "Test feature flags",
+                        "type": "widget",
+                        "details": "Verify enableDrag, enableResize, enableRotate flags work correctly"
+                    },
+                    {
+                        "id": "t7.2",
+                        "description": "Test customization callbacks",
+                        "type": "widget",
+                        "details": "Verify callbacks are called at appropriate times"
+                    },
+                    {
+                        "id": "t7.3",
+                        "description": "Test custom stamp builder",
+                        "type": "widget",
+                        "details": "Verify custom builder is used when provided"
+                    },
+                    {
+                        "id": "t7.4",
+                        "description": "Test performance with many stamps",
+                        "type": "performance",
+                        "details": "Verify smooth performance with 50+ stamps on page"
+                    },
+                    {
+                        "id": "t7.5",
+                        "description": "Integration test: full workflow",
+                        "type": "integration",
+                        "details": "Test complete workflow: place stamp, drag, resize, rotate, select, delete, export"
+                    }
+                ],
+                "acceptanceCriteria": [
+                    "All features integrated and working together",
+                    "Feature flags allow enabling/disabling features",
+                    "Customization options available",
+                    "Performance is smooth (60fps) with many stamps",
+                    "Documentation is complete and accurate",
+                    "Example app demonstrates all features",
+                    "All tests pass",
+                    "Code coverage >= 80%",
+                    "Backward compatibility maintained"
+                ]
+            }
+        ],
+        "summary": {
+            "totalPhases": 7,
+            "estimatedTotalEffort": "24-40 hours",
+            "phasesCompleted": 4,
+            "phasesRemaining": 3,
+            "currentPhase": "phase-5",
+            "blockers": []
+        }
+    }
+}

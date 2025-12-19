@@ -1,21 +1,20 @@
 # pdf_stamp_editor
 
-A Flutter package for viewing PDFs with draggable stamp overlays and exporting stamped PDFs on mobile and desktop platforms.
+A Flutter package for viewing PDFs with stamp overlays and exporting stamped PDFs on mobile platforms.
 
 ## Features
 
 - 📄 **PDF Viewing**: Display PDFs using the powerful `pdfrx` viewer
-- 🖼️ **Draggable Stamps**: Place and position image or text stamps on PDF pages
-- 🔄 **Interactive Editing**: Drag, resize, and rotate stamps with intuitive gestures
-- 💾 **PDF Export**: Export stamped PDFs with vector-based stamping (mobile/desktop only)
-- 🌐 **Web Support**: View and edit stamps on web (export requires backend or native implementation)
-- 🎨 **Customizable**: Support for both PNG image stamps and text stamps
+- 🖼️ **Stamp Placement**: Place and position image or text stamps on PDF pages
+- 💾 **PDF Export**: Export stamped PDFs with vector-based stamping (mobile only)
+- 🌐 **Web Support**: View and place stamps on web (export disabled)
+- 🎨 **Customizable**: Support for both PNG image stamps and text stamps with configurable size and rotation
 
 ## Platform Support
 
 - ✅ **Mobile** (iOS/Android): Full support including export
-- ✅ **Desktop** (Windows/macOS/Linux): Full support including export
-- ⚠️ **Web**: View and edit only (export disabled due to PDFium FFI limitations)
+- ⚠️ **Web**: View and place stamps only (export not supported)
+- ❌ **Desktop** (Windows/macOS/Linux): Not currently supported
 
 ## Getting Started
 
@@ -35,9 +34,12 @@ import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:pdf_stamp_editor/pdf_stamp_editor.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await pdfrxFlutterInitialize();
+  
+  // Required if you may touch pdfrx engine / PdfDocument APIs early.
+  pdfrxFlutterInitialize();
+  
   runApp(const MyApp());
 }
 
@@ -50,29 +52,32 @@ class MyApp extends StatelessWidget {
       home: PdfStampEditorPage(
         pdfBytes: yourPdfBytes, // Uint8List from file/network
         pngBytes: yourStampImageBytes, // Optional: Uint8List PNG image
+        stampWidthPt: 140, // Optional: stamp width in points (default: 140)
+        stampRotationDeg: 0, // Optional: rotation in degrees (default: 0)
       ),
     );
   }
 }
 ```
 
-### Exporting Stamped PDFs (Mobile/Desktop)
+### Exporting Stamped PDFs (Mobile Only)
 
-For exporting on mobile/desktop platforms, you'll need to initialize PDFium:
+For exporting on mobile platforms (Android/iOS), use the `PdfiumStamper` class:
 
 ```dart
-import 'dart:ffi';
-import 'package:pdfium_dart/pdfium_dart.dart';
 import 'package:pdf_stamp_editor/pdf_stamp_editor.dart';
 
-// Initialize PDFium (do this once, typically in your app initialization)
-final pdfium = PDFium(DynamicLibrary.open('pdfium'));
-
 // In your export handler:
-final stamper = PdfStampStamper(pdfium);
-final outputBytes = await stamper.applyStamps(pdfBytes, stamps);
-// Save or share outputBytes
+final outBytes = await PdfiumStamper.applyStamps(
+  inputPdfBytes: pdfBytes,
+  stamps: stamps, // List<PdfStamp> from PdfStampEditorPage
+);
+// Save or share outBytes
 ```
+
+The export functionality uses native implementations:
+- **Android**: PdfBox-Android library
+- **iOS**: PDFKit framework
 
 ## Example
 
@@ -83,23 +88,65 @@ See the `example/` directory for a complete working example.
 The package is organized into three main components:
 
 - **Model** (`PdfStamp`): Data model representing stamps with position, size, rotation, and content
-- **Engine** (`PdfStampStamper`): PDFium-based engine for applying stamps to PDFs (native platforms)
-- **UI** (`PdfStampEditorPage`): Flutter widget providing the interactive editor interface
+- **Engine** (`PdfiumStamper`): Native platform-based engine for applying stamps to PDFs (Android: PdfBox, iOS: PDFKit)
+- **UI** (`PdfStampEditorPage`): Flutter widget providing the stamp placement interface
+- **Utilities** (`PdfCoordinateConverter`): Coordinate conversion utilities for custom UI implementations
+
+### Coordinate Conversion Utilities
+
+The `PdfCoordinateConverter` class provides utilities for converting between PDF coordinate space (points, bottom-left origin) and screen/viewer coordinate space (pixels, top-left origin). This is useful when building custom UI implementations that need to interact with PDF coordinates.
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:pdfrx/pdfrx.dart';
+import 'package:pdf_stamp_editor/pdf_stamp_editor.dart';
+
+// Convert screen coordinates to PDF coordinates
+PdfPoint pdfPoint = PdfCoordinateConverter.viewerOffsetToPdfPoint(
+  page: pdfPage, // PdfPage from pdfrx
+  localOffsetTopLeft: Offset(100, 100), // Screen position (top-left origin)
+  scaledPageSizePx: Size(612, 792), // Displayed page size in pixels
+);
+
+// Convert PDF coordinates to screen coordinates
+Offset screenOffset = PdfCoordinateConverter.pdfPointToViewerOffset(
+  page: pdfPage,
+  xPt: 100.0, // PDF X coordinate (bottom-left origin)
+  yPt: 692.0, // PDF Y coordinate (bottom-left origin)
+  scaledPageSizePx: Size(612, 792),
+);
+
+// Calculate scale factors for a page
+final scaleFactors = PdfCoordinateConverter.pageScaleFactors(
+  pdfPage,
+  Size(306, 396), // Scaled page size
+);
+print('X scale: ${scaleFactors.sx}, Y scale: ${scaleFactors.sy}');
+
+// Convert rotation enum/int to degrees
+int degrees = PdfCoordinateConverter.rotationToDegrees(
+  PdfPageRotation.clockwise90, // or int value like 90
+);
+```
+
+All methods handle PDF page rotations (0°, 90°, 180°, 270°) correctly. The converter respects PDF's bottom-left origin coordinate system while working with Flutter's top-left origin screen coordinates.
 
 ## Dependencies
 
 - `pdfrx`: PDF viewing and rendering
-- `pdfium_dart`: PDF manipulation and export (native platforms)
 - `image`: PNG image processing
 - `file_picker`: File selection (optional)
 - `path_provider`: File system access (optional)
+- `path`: Path manipulation utilities
 
 ## Limitations
 
-- Web export is not supported due to PDFium FFI requirements. For web export, consider:
+- Web export is not supported. For web export, consider:
   - Using a backend service
   - Implementing a JavaScript/WASM-based PDF writer
   - Using a different PDF manipulation library for web
+- Desktop platforms (Windows/macOS/Linux) are not currently supported
+- Stamps are placed with preset size and rotation; interactive editing (drag, resize, rotate) of placed stamps is not available
 
 ## Contributing
 

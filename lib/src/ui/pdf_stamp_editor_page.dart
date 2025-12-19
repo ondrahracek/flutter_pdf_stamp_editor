@@ -8,31 +8,12 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
 
+import '../controller/pdf_stamp_editor_controller.dart';
 import '../model/pdf_stamp.dart';
+import '../utils/coordinate_converter.dart';
+import 'draggable_stamp_widget.dart';
 import '../engine/stamper_platform.dart'
     if (dart.library.html) '../engine/stamper_stub.dart';
-
-/// Converts PdfPageRotation enum or int to degrees (0-359).
-int rotationToDegrees(Object rotation) {
-  if (rotation is PdfPageRotation) {
-    switch (rotation) {
-      case PdfPageRotation.none:
-        return 0;
-      case PdfPageRotation.clockwise90:
-        return 90;
-      case PdfPageRotation.clockwise180:
-        return 180;
-      case PdfPageRotation.clockwise270:
-        return 270;
-    }
-  }
-  if (rotation is int) {
-    final r = rotation % 360;
-    return (r + 360) % 360;
-  }
-  // Fallback (should not happen in pdfrx)
-  return 0;
-}
 
 /// PDF stamp editor page with interactive stamp placement and export.
 ///
@@ -46,6 +27,8 @@ class PdfStampEditorPage extends StatefulWidget {
   final Uint8List? pngBytes;
   final double stampWidthPt;
   final double stampRotationDeg;
+  final PdfStampEditorController? controller;
+  final bool enableDrag;
   final ValueChanged<List<PdfStamp>>? onStampsChanged;
   final VoidCallback? onTapDown;
   final VoidCallback? onLongPressDown;
@@ -56,6 +39,8 @@ class PdfStampEditorPage extends StatefulWidget {
     this.pngBytes,
     this.stampWidthPt = 140,
     this.stampRotationDeg = 0,
+    this.controller,
+    this.enableDrag = false,
     this.onStampsChanged,
     this.onTapDown,
     this.onLongPressDown,
@@ -71,27 +56,59 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
       true; // Controls viewer visibility to prevent concurrent PDFium calls
   File? _tempPdfFile; // Materialized PDF for viewer on non-web platforms
 
-  List<PdfStamp> get stamps => List.unmodifiable(_stamps);
+  List<PdfStamp> get stamps => widget.controller?.stamps ?? List.unmodifiable(_stamps);
 
   void clearStamps() {
-    setState(() {
-      _stamps.clear();
-      widget.onStampsChanged?.call(stamps);
-    });
+    if (widget.controller != null) {
+      widget.controller!.clearStamps();
+    } else {
+      setState(() {
+        _stamps.clear();
+        widget.onStampsChanged?.call(stamps);
+      });
+    }
+  }
+
+  void _addStamp(PdfStamp stamp) {
+    if (widget.controller != null) {
+      widget.controller!.addStamp(stamp);
+    } else {
+      setState(() {
+        _stamps.add(stamp);
+        widget.onStampsChanged?.call(stamps);
+      });
+    }
   }
 
   @override
   void initState() {
     super.initState();
+    widget.controller?.addListener(_onControllerChanged);
     _materializePdfToTempFileIfNeeded();
   }
 
   @override
   void didUpdateWidget(covariant PdfStampEditorPage oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.removeListener(_onControllerChanged);
+      widget.controller?.addListener(_onControllerChanged);
+    }
     if (!listEquals(oldWidget.pdfBytes, widget.pdfBytes)) {
       _materializePdfToTempFileIfNeeded();
     }
+  }
+
+  @override
+  void dispose() {
+    widget.controller?.removeListener(_onControllerChanged);
+    super.dispose();
+  }
+
+  void _onControllerChanged() {
+    setState(() {
+      widget.onStampsChanged?.call(stamps);
+    });
   }
 
   Future<void> _materializePdfToTempFileIfNeeded() async {
@@ -205,14 +222,16 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                     rect: pageRect,
                     child: _PageOverlay(
                       page: page,
-                      stamps: _stamps,
+                      stamps: stamps,
+                      controller: widget.controller,
+                      enableDrag: widget.enableDrag,
                       onTapDown: (offset) {
                         final png = widget.pngBytes;
                         if (png == null) {
                           _snack('Pick a PNG first.');
                           return;
                         }
-                        final pdfPt = _viewerOffsetToPdfPoint(
+                        final pdfPt = PdfCoordinateConverter.viewerOffsetToPdfPoint(
                           page: page,
                           localOffsetTopLeft: offset,
                           scaledPageSizePx: pageRect.size,
@@ -226,31 +245,25 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                           widthPt: widget.stampWidthPt,
                           heightPt: widget.stampWidthPt * 0.35,
                         );
-                        setState(() {
-                          _stamps.add(stamp);
-                          widget.onStampsChanged?.call(stamps);
-                        });
+                        _addStamp(stamp);
                         widget.onTapDown?.call();
                       },
                       onLongPressDown: (offset) {
-                        final pdfPt = _viewerOffsetToPdfPoint(
+                        final pdfPt = PdfCoordinateConverter.viewerOffsetToPdfPoint(
                           page: page,
                           localOffsetTopLeft: offset,
                           scaledPageSizePx: pageRect.size,
                         );
-                        setState(() {
-                          _stamps.add(
-                            TextStamp(
-                              pageIndex: page.pageNumber - 1,
-                              centerXPt: pdfPt.x,
-                              centerYPt: pdfPt.y,
-                              rotationDeg: widget.stampRotationDeg,
-                              text: 'APPROVED',
-                              fontSizePt: 18,
-                            ),
-                          );
-                          widget.onStampsChanged?.call(stamps);
-                        });
+                        _addStamp(
+                          TextStamp(
+                            pageIndex: page.pageNumber - 1,
+                            centerXPt: pdfPt.x,
+                            centerYPt: pdfPt.y,
+                            rotationDeg: widget.stampRotationDeg,
+                            text: 'APPROVED',
+                            fontSizePt: 18,
+                          ),
+                        );
                         widget.onLongPressDown?.call();
                       },
                     ),
@@ -273,14 +286,16 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                   rect: pageRect,
                   child: _PageOverlay(
                     page: page,
-                    stamps: _stamps,
+                    stamps: stamps,
+                    controller: widget.controller,
+                    enableDrag: widget.enableDrag,
                     onTapDown: (offset) {
                       final png = widget.pngBytes;
                       if (png == null) {
                         _snack('Pick a PNG first.');
                         return;
                       }
-                      final pdfPt = _viewerOffsetToPdfPoint(
+                      final pdfPt = PdfCoordinateConverter.viewerOffsetToPdfPoint(
                         page: page,
                         localOffsetTopLeft: offset,
                         scaledPageSizePx: pageRect.size,
@@ -294,31 +309,25 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                         widthPt: widget.stampWidthPt,
                         heightPt: widget.stampWidthPt * 0.35,
                       );
-                      setState(() {
-                        _stamps.add(stamp);
-                        widget.onStampsChanged?.call(stamps);
-                      });
+                      _addStamp(stamp);
                       widget.onTapDown?.call();
                     },
                     onLongPressDown: (offset) {
-                      final pdfPt = _viewerOffsetToPdfPoint(
+                      final pdfPt = PdfCoordinateConverter.viewerOffsetToPdfPoint(
                         page: page,
                         localOffsetTopLeft: offset,
                         scaledPageSizePx: pageRect.size,
                       );
-                      setState(() {
-                        _stamps.add(
-                          TextStamp(
-                            pageIndex: page.pageNumber - 1,
-                            centerXPt: pdfPt.x,
-                            centerYPt: pdfPt.y,
-                            rotationDeg: widget.stampRotationDeg,
-                            text: 'APPROVED',
-                            fontSizePt: 18,
-                          ),
-                        );
-                        widget.onStampsChanged?.call(stamps);
-                      });
+                      _addStamp(
+                        TextStamp(
+                          pageIndex: page.pageNumber - 1,
+                          centerXPt: pdfPt.x,
+                          centerYPt: pdfPt.y,
+                          rotationDeg: widget.stampRotationDeg,
+                          text: 'APPROVED',
+                          fontSizePt: 18,
+                        ),
+                      );
                       widget.onLongPressDown?.call();
                     },
                   ),
@@ -337,12 +346,16 @@ class _PageOverlay extends StatelessWidget {
   const _PageOverlay({
     required this.page,
     required this.stamps,
+    required this.controller,
+    required this.enableDrag,
     required this.onTapDown,
     required this.onLongPressDown,
   });
 
   final PdfPage page;
   final List<PdfStamp> stamps;
+  final PdfStampEditorController? controller;
+  final bool enableDrag;
   final void Function(Offset localOffsetTopLeft) onTapDown;
   final void Function(Offset localOffsetTopLeft) onLongPressDown;
 
@@ -353,8 +366,14 @@ class _PageOverlay extends StatelessWidget {
         final scaledPageSizePx =
             Size(constraints.maxWidth, constraints.maxHeight);
 
-        final pageStamps =
-            stamps.where((s) => s.pageIndex == page.pageNumber - 1).toList();
+        final pageStamps = <PdfStamp>[];
+        final pageStampIndices = <int>[];
+        for (var i = 0; i < stamps.length; i++) {
+          if (stamps[i].pageIndex == page.pageNumber - 1) {
+            pageStamps.add(stamps[i]);
+            pageStampIndices.add(i);
+          }
+        }
 
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
@@ -362,12 +381,20 @@ class _PageOverlay extends StatelessWidget {
           onLongPressStart: (d) => onLongPressDown(d.localPosition),
           child: Stack(
             children: [
-              for (final s in pageStamps)
-                _buildStampWidget(
-                  stamp: s,
-                  page: page,
-                  scaledPageSizePx: scaledPageSizePx,
-                ),
+              for (var i = 0; i < pageStamps.length; i++)
+                enableDrag && controller != null
+                    ? DraggableStampWidget(
+                        stamp: pageStamps[i],
+                        stampIndex: pageStampIndices[i],
+                        page: page,
+                        scaledPageSizePx: scaledPageSizePx,
+                        controller: controller!,
+                      )
+                    : _buildStampWidget(
+                        stamp: pageStamps[i],
+                        page: page,
+                        scaledPageSizePx: scaledPageSizePx,
+                      ),
             ],
           ),
         );
@@ -381,7 +408,7 @@ class _PageOverlay extends StatelessWidget {
     required Size scaledPageSizePx,
   }) {
     // Convert PDF point -> viewer local offset (top-left origin)
-    final posPx = _pdfPointToViewerOffset(
+    final posPx = PdfCoordinateConverter.pdfPointToViewerOffset(
       page: page,
       xPt: stamp.centerXPt,
       yPt: stamp.centerYPt,
@@ -389,7 +416,7 @@ class _PageOverlay extends StatelessWidget {
     );
 
     if (stamp case ImageStamp s) {
-      final scale = _pageScaleFactors(page, scaledPageSizePx);
+      final scale = PdfCoordinateConverter.pageScaleFactors(page, scaledPageSizePx);
       final wPx = s.widthPt * scale.sx;
       final hPx = s.heightPt * scale.sy;
 
@@ -406,7 +433,7 @@ class _PageOverlay extends StatelessWidget {
     }
 
     if (stamp case TextStamp s) {
-      final scale = _pageScaleFactors(page, scaledPageSizePx);
+      final scale = PdfCoordinateConverter.pageScaleFactors(page, scaledPageSizePx);
       final fontPx = s.fontSizePt * scale.sy;
 
       return Positioned(
@@ -430,79 +457,3 @@ class _PageOverlay extends StatelessWidget {
   }
 }
 
-/// ===== Coordinate conversion (no guessing; matches PDF rotation model) =====
-/// PDF user space: points, origin bottom-left.
-/// Viewer page local: pixels, origin top-left.
-
-({double sx, double sy}) _pageScaleFactors(
-    PdfPage page, Size scaledPageSizePx) {
-  // PDF page size in points
-  final w = page.width;
-  final h = page.height;
-
-  final rot = rotationToDegrees(page.rotation);
-  final rotatedW = (rot == 90 || rot == 270) ? h : w;
-  final rotatedH = (rot == 90 || rot == 270) ? w : h;
-
-  return (
-    sx: scaledPageSizePx.width / rotatedW,
-    sy: scaledPageSizePx.height / rotatedH,
-  );
-}
-
-PdfPoint _viewerOffsetToPdfPoint({
-  required PdfPage page,
-  required Offset localOffsetTopLeft,
-  required Size scaledPageSizePx,
-}) {
-  // pdfrx provides this helper for exactly this conversion.
-  final rot = rotationToDegrees(page.rotation);
-  return localOffsetTopLeft.toPdfPoint(
-    page: page,
-    scaledPageSize: scaledPageSizePx,
-    rotation: rot,
-  );
-}
-
-Offset _pdfPointToViewerOffset({
-  required PdfPage page,
-  required double xPt,
-  required double yPt,
-  required Size scaledPageSizePx,
-}) {
-  final w = page.width;
-  final h = page.height;
-  final rot = rotationToDegrees(page.rotation);
-
-  // Map original PDF point -> rotated-space point (origin bottom-left)
-  double xr, yr;
-  if (rot == 0) {
-    xr = xPt;
-    yr = yPt;
-  } else if (rot == 90) {
-    xr = yPt;
-    yr = w - xPt;
-  } else if (rot == 180) {
-    xr = w - xPt;
-    yr = h - yPt;
-  } else if (rot == 270) {
-    xr = h - yPt;
-    yr = xPt;
-  } else {
-    // pdfrx rotation is typically multiples of 90.
-    xr = xPt;
-    yr = yPt;
-  }
-
-  final rotatedW = (rot == 90 || rot == 270) ? h : w;
-  final rotatedH = (rot == 90 || rot == 270) ? w : h;
-
-  final sx = scaledPageSizePx.width / rotatedW;
-  final sy = scaledPageSizePx.height / rotatedH;
-
-  // rotated-space bottom-left -> viewer top-left
-  final xPx = xr * sx;
-  final yPx = (rotatedH - yr) * sy;
-
-  return Offset(xPx, yPx);
-}

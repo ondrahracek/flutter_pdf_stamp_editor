@@ -39,6 +39,26 @@ class ImageStamp extends PdfStamp {
   final Uint8List pngBytes;
   final double widthPt;
   final double heightPt;
+
+  ImageStamp copyWith({
+    int? pageIndex,
+    double? centerXPt,
+    double? centerYPt,
+    double? rotationDeg,
+    Uint8List? pngBytes,
+    double? widthPt,
+    double? heightPt,
+  }) {
+    return ImageStamp(
+      pageIndex: pageIndex ?? this.pageIndex,
+      centerXPt: centerXPt ?? this.centerXPt,
+      centerYPt: centerYPt ?? this.centerYPt,
+      rotationDeg: rotationDeg ?? this.rotationDeg,
+      pngBytes: pngBytes ?? this.pngBytes,
+      widthPt: widthPt ?? this.widthPt,
+      heightPt: heightPt ?? this.heightPt,
+    );
+  }
 }
 
 /// Text stamp.
@@ -54,4 +74,22 @@ class TextStamp extends PdfStamp {
 
   final String text;
   final double fontSizePt;
+
+  TextStamp copyWith({
+    int? pageIndex,
+    double? centerXPt,
+    double? centerYPt,
+    double? rotationDeg,
+    String? text,
+    double? fontSizePt,
+  }) {
+    return TextStamp(
+      pageIndex: pageIndex ?? this.pageIndex,
+      centerXPt: centerXPt ?? this.centerXPt,
+      centerYPt: centerYPt ?? this.centerYPt,
+      rotationDeg: rotationDeg ?? this.rotationDeg,
+      text: text ?? this.text,
+      fontSizePt: fontSizePt ?? this.fontSizePt,
+    );
+  }
 }

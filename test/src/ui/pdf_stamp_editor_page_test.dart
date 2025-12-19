@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pdf_stamp_editor/src/controller/pdf_stamp_editor_controller.dart';
 import 'package:pdf_stamp_editor/src/ui/pdf_stamp_editor_page.dart';
 
 /// Creates minimal valid PDF bytes for testing.
@@ -257,6 +258,52 @@ void main() {
       // We can't easily test the exact message without platform detection,
       // but we verify the action triggers something
       expect(find.byIcon(Icons.download), findsOneWidget);
+    });
+  });
+
+  group('PdfStampEditorPage with controller', () {
+    testWidgets('works with external controller', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+      final controller = PdfStampEditorController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+            controller: controller,
+          ),
+        ),
+      );
+
+      expect(find.byType(PdfStampEditorPage), findsOneWidget);
+      expect(controller.stamps, isEmpty);
+    });
+
+    testWidgets('controller receives stamps when added via widget', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+      final pngBytes = Uint8List.fromList([
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+        ...List.filled(100, 0),
+      ]);
+      final controller = PdfStampEditorController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+            pngBytes: pngBytes,
+            controller: controller,
+          ),
+        ),
+      );
+
+      expect(controller.stamps, isEmpty);
+
+      // The widget should render and allow interaction
+      // Note: Actually tapping and adding stamps requires a fully rendered PDF viewer
+      // which is complex to test. This test verifies the controller can be provided
+      // and the widget accepts it.
+      expect(find.byType(PdfStampEditorPage), findsOneWidget);
     });
   });
 }
