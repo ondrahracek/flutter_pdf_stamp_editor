@@ -7,8 +7,35 @@ class PdfStampEditorController extends ChangeNotifier {
       : _stamps = List.from(initialStamps ?? []);
 
   final List<PdfStamp> _stamps;
+  final Set<int> _selectedIndices = <int>{};
 
   List<PdfStamp> get stamps => List.unmodifiable(_stamps);
+  Set<int> get selectedIndices => Set.unmodifiable(_selectedIndices);
+
+  bool isSelected(int index) => _selectedIndices.contains(index);
+
+  void selectStamp(int index, {bool toggle = false}) {
+    if (toggle && _selectedIndices.contains(index)) {
+      _selectedIndices.remove(index);
+    } else {
+      _selectedIndices.add(index);
+    }
+    notifyListeners();
+  }
+
+  void clearSelection() {
+    _selectedIndices.clear();
+    notifyListeners();
+  }
+
+  void deleteSelectedStamps() {
+    final indicesToRemove = _selectedIndices.toList()..sort((a, b) => b.compareTo(a));
+    for (final index in indicesToRemove) {
+      _stamps.removeAt(index);
+    }
+    _selectedIndices.clear();
+    notifyListeners();
+  }
 
   void addStamp(PdfStamp stamp) {
     _stamps.add(stamp);

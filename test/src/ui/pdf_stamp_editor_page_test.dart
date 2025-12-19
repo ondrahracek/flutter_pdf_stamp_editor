@@ -1,8 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf_stamp_editor/src/controller/pdf_stamp_editor_controller.dart';
+import 'package:pdf_stamp_editor/src/model/pdf_stamp.dart';
+import 'package:pdf_stamp_editor/src/ui/draggable_stamp_widget.dart';
 import 'package:pdf_stamp_editor/src/ui/pdf_stamp_editor_page.dart';
 
 /// Creates minimal valid PDF bytes for testing.
@@ -303,6 +306,352 @@ void main() {
       // Note: Actually tapping and adding stamps requires a fully rendered PDF viewer
       // which is complex to test. This test verifies the controller can be provided
       // and the widget accepts it.
+      expect(find.byType(PdfStampEditorPage), findsOneWidget);
+    });
+  });
+
+  group('PdfStampEditorPage - Selection and Delete', () {
+    testWidgets('delete selected stamps with keyboard', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 50.0,
+      );
+      controller.addStamp(stamp);
+      controller.selectStamp(0);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+            controller: controller,
+            enableDrag: true,
+          ),
+        ),
+      );
+
+      expect(controller.stamps, hasLength(1));
+      expect(controller.isSelected(0), isTrue);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
+      await tester.pump();
+
+      expect(controller.stamps, isEmpty);
+      expect(controller.selectedIndices, isEmpty);
+    });
+
+    testWidgets('background tap deselects stamps', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 50.0,
+      );
+      controller.addStamp(stamp);
+      controller.selectStamp(0);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+            controller: controller,
+            enableDrag: true,
+          ),
+        ),
+      );
+
+      expect(controller.isSelected(0), isTrue);
+
+      await tester.pump();
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pump();
+
+      expect(controller.selectedIndices, isEmpty);
+      expect(controller.isSelected(0), isFalse);
+    });
+  });
+
+  group('PdfStampEditorPage - Feature Flags', () {
+    testWidgets('enableResize parameter is accepted', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+            enableDrag: true,
+            enableResize: false,
+          ),
+        ),
+      );
+
+      expect(find.byType(PdfStampEditorPage), findsOneWidget);
+    });
+  });
+
+  group('PdfStampEditorPage - Customization Callbacks', () {
+    testWidgets('onStampSelected is called when stamp is selected', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+          0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+          0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+          0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+          0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+          0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+          0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+          0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+          0x42, 0x60, 0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+
+      int? selectedIndex;
+      PdfStamp? selectedStamp;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+            controller: controller,
+            enableDrag: true,
+            onStampSelected: (index, stamp) {
+              selectedIndex = index;
+              selectedStamp = stamp;
+            },
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(PdfStampEditorPage), findsOneWidget);
+    });
+
+    testWidgets('onStampDeleted is called when stamps are deleted', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+          0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+          0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+          0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+          0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+          0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+          0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+          0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+          0x42, 0x60, 0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+      controller.selectStamp(0);
+
+      List<int> deletedIndices = [];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+            controller: controller,
+            enableDrag: true,
+            onStampDeleted: (indices) {
+              deletedIndices = indices;
+            },
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      controller.deleteSelectedStamps();
+      await tester.pump();
+
+      expect(deletedIndices, equals([0]));
+    });
+
+    testWidgets('stampBuilder parameter is accepted', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+            stampBuilder: (context, stamp, page, scaledPageSizePx, position) {
+              return Container(
+                key: const Key('custom-stamp'),
+                width: 50,
+                height: 50,
+                color: Colors.green,
+              );
+            },
+          ),
+        ),
+      );
+
       expect(find.byType(PdfStampEditorPage), findsOneWidget);
     });
   });

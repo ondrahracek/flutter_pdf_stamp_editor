@@ -282,4 +282,99 @@ void main() {
       controller.dispose();
     });
   });
+
+  group('selection', () {
+    test('selectStamp adds index to selected indices', () {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 100.0,
+        centerYPt: 200.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([1, 2, 3]),
+        widthPt: 50.0,
+        heightPt: 30.0,
+      );
+      controller.addStamp(stamp);
+
+      controller.selectStamp(0);
+
+      expect(controller.selectedIndices, contains(0));
+      expect(controller.isSelected(0), isTrue);
+    });
+
+    test('clearSelection removes all selected indices', () {
+      final controller = PdfStampEditorController();
+      final stamp1 = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 100.0,
+        centerYPt: 200.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([1, 2, 3]),
+        widthPt: 50.0,
+        heightPt: 30.0,
+      );
+      final stamp2 = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 200.0,
+        centerYPt: 300.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([4, 5, 6]),
+        widthPt: 50.0,
+        heightPt: 30.0,
+      );
+      controller.addStamp(stamp1);
+      controller.addStamp(stamp2);
+      controller.selectStamp(0);
+      controller.selectStamp(1);
+
+      controller.clearSelection();
+
+      expect(controller.selectedIndices, isEmpty);
+      expect(controller.isSelected(0), isFalse);
+      expect(controller.isSelected(1), isFalse);
+    });
+
+    test('deleteSelectedStamps removes selected stamps and clears selection', () {
+      final controller = PdfStampEditorController();
+      final stamp1 = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 100.0,
+        centerYPt: 200.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([1, 2, 3]),
+        widthPt: 50.0,
+        heightPt: 30.0,
+      );
+      final stamp2 = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 200.0,
+        centerYPt: 300.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([4, 5, 6]),
+        widthPt: 50.0,
+        heightPt: 30.0,
+      );
+      final stamp3 = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 300.0,
+        centerYPt: 400.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([7, 8, 9]),
+        widthPt: 50.0,
+        heightPt: 30.0,
+      );
+      controller.addStamp(stamp1);
+      controller.addStamp(stamp2);
+      controller.addStamp(stamp3);
+      controller.selectStamp(0);
+      controller.selectStamp(2);
+
+      controller.deleteSelectedStamps();
+
+      expect(controller.stamps, hasLength(1));
+      expect(controller.stamps[0], stamp2);
+      expect(controller.selectedIndices, isEmpty);
+    });
+  });
 }

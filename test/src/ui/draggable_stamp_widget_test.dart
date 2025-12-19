@@ -1424,5 +1424,1921 @@ void main() {
       expect(updatedStamp.widthPt, greaterThan(initialWidth));
       expect(updatedStamp.heightPt, greaterThan(initialHeight));
     });
+
+    testWidgets('responds to rotation gestures', (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final finder = find.byType(DraggableStampWidget);
+      final center = tester.getCenter(finder);
+
+      final initialRotation = (controller.stamps[0] as ImageStamp).rotationDeg;
+
+      final gesture1 = await tester.startGesture(center + const Offset(30, 0));
+      final gesture2 = await tester.startGesture(center + const Offset(-30, 0));
+      await tester.pump();
+
+      await gesture1.moveBy(const Offset(0, -20));
+      await gesture2.moveBy(const Offset(0, 20));
+      await tester.pump();
+
+      await gesture1.up();
+      await gesture2.up();
+      await tester.pump();
+
+      final updatedStamp = controller.stamps[0] as ImageStamp;
+      expect(updatedStamp.rotationDeg, isNot(initialRotation));
+    });
+
+    testWidgets('rotation updates stamp angle correctly',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final finder = find.byType(DraggableStampWidget);
+      final center = tester.getCenter(finder);
+
+      final initialRotation = (controller.stamps[0] as ImageStamp).rotationDeg;
+
+      final gesture1 = await tester.startGesture(center + const Offset(30, 0));
+      final gesture2 = await tester.startGesture(center + const Offset(-30, 0));
+      await tester.pump();
+
+      await gesture1.moveBy(const Offset(0, -20));
+      await gesture2.moveBy(const Offset(0, 20));
+      await tester.pump();
+
+      await gesture1.up();
+      await gesture2.up();
+      await tester.pump();
+
+      final updatedStamp = controller.stamps[0] as ImageStamp;
+      expect(updatedStamp.rotationDeg, isNot(initialRotation));
+      expect(updatedStamp.rotationDeg, isA<double>());
+      expect(updatedStamp.rotationDeg, greaterThanOrEqualTo(0.0));
+      expect(updatedStamp.rotationDeg, lessThan(360.0));
+    });
+
+    testWidgets('rotation occurs around center point',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final finder = find.byType(DraggableStampWidget);
+      final center = tester.getCenter(finder);
+
+      final initialCenterX = (controller.stamps[0] as ImageStamp).centerXPt;
+      final initialCenterY = (controller.stamps[0] as ImageStamp).centerYPt;
+
+      final gesture1 = await tester.startGesture(center + const Offset(30, 0));
+      final gesture2 = await tester.startGesture(center + const Offset(-30, 0));
+      await tester.pump();
+
+      await gesture1.moveBy(const Offset(0, -20));
+      await gesture2.moveBy(const Offset(0, 20));
+      await tester.pump();
+
+      await gesture1.up();
+      await gesture2.up();
+      await tester.pump();
+
+      final updatedStamp = controller.stamps[0] as ImageStamp;
+      expect(updatedStamp.centerXPt, initialCenterX);
+      expect(updatedStamp.centerYPt, initialCenterY);
+      expect(updatedStamp.rotationDeg, isNot(0.0));
+    });
+
+    testWidgets('rotation angle is normalized to 0-360 range',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 350.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final finder = find.byType(DraggableStampWidget);
+      final center = tester.getCenter(finder);
+
+      final gesture1 = await tester.startGesture(center + const Offset(30, 0));
+      final gesture2 = await tester.startGesture(center + const Offset(-30, 0));
+      await tester.pump();
+
+      await gesture1.moveBy(const Offset(0, -20));
+      await gesture2.moveBy(const Offset(0, 20));
+      await tester.pump();
+
+      await gesture1.up();
+      await gesture2.up();
+      await tester.pump();
+
+      final updatedStamp = controller.stamps[0] as ImageStamp;
+      expect(updatedStamp.rotationDeg, greaterThanOrEqualTo(0.0));
+      expect(updatedStamp.rotationDeg, lessThan(360.0));
+    });
+
+    testWidgets('rotation works with resized stamps',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82
+        ]),
+        widthPt: 150.0,
+        heightPt: 50.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final finder = find.byType(DraggableStampWidget);
+      final center = tester.getCenter(finder);
+
+      final initialCenterX = (controller.stamps[0] as ImageStamp).centerXPt;
+      final initialCenterY = (controller.stamps[0] as ImageStamp).centerYPt;
+      final initialWidth = (controller.stamps[0] as ImageStamp).widthPt;
+      final initialHeight = (controller.stamps[0] as ImageStamp).heightPt;
+
+      final gesture1 = await tester.startGesture(center + const Offset(40, 0));
+      final gesture2 = await tester.startGesture(center + const Offset(-40, 0));
+      await tester.pump();
+
+      await gesture1.moveBy(const Offset(0, -20));
+      await gesture2.moveBy(const Offset(0, 20));
+      await tester.pump();
+
+      await gesture1.up();
+      await gesture2.up();
+      await tester.pump();
+
+      final updatedStamp = controller.stamps[0] as ImageStamp;
+      expect(updatedStamp.rotationDeg, isNot(0.0));
+      expect(updatedStamp.centerXPt, initialCenterX);
+      expect(updatedStamp.centerYPt, initialCenterY);
+      expect(updatedStamp.widthPt, initialWidth);
+      expect(updatedStamp.heightPt, initialHeight);
+    });
+
+    testWidgets('rotation snaps to increments when enabled',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                        rotationSnapDegrees: 45.0,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final finder = find.byType(DraggableStampWidget);
+      final center = tester.getCenter(finder);
+
+      final gesture1 = await tester.startGesture(center + const Offset(30, 0));
+      final gesture2 = await tester.startGesture(center + const Offset(-30, 0));
+      await tester.pump();
+
+      await gesture1.moveBy(const Offset(0, -20));
+      await gesture2.moveBy(const Offset(0, 20));
+      await tester.pump();
+
+      await gesture1.up();
+      await gesture2.up();
+      await tester.pump();
+
+      final updatedStamp = controller.stamps[0] as ImageStamp;
+      expect(updatedStamp.rotationDeg % 45.0, closeTo(0.0, 0.1));
+    });
+
+    testWidgets('tap selects stamp', (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 50.0,
+      );
+      controller.addStamp(stamp);
+
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(controller.isSelected(0), isFalse);
+
+      final finder = find.byType(DraggableStampWidget);
+      final center = tester.getCenter(finder);
+      await tester.tapAt(center);
+      await tester.pump();
+
+      expect(controller.isSelected(0), isTrue);
+    });
+
+    testWidgets('selected stamp shows visual indicator',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 50.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(controller.isSelected(0), isFalse);
+      expect(find.byType(Container), findsNothing);
+
+      controller.selectStamp(0);
+      await tester.pump();
+
+      expect(controller.isSelected(0), isTrue);
+      expect(find.byType(Container), findsOneWidget);
+    });
+
+    testWidgets('multiple stamps can be selected', (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp1 = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 100.0,
+        centerYPt: 200.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 50.0,
+      );
+      final stamp2 = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 300.0,
+        centerYPt: 400.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 50.0,
+      );
+      controller.addStamp(stamp1);
+      controller.addStamp(stamp2);
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  return Stack(
+                    children: [
+                      for (var i = 0; i < controller.stamps.length; i++)
+                        DraggableStampWidget(
+                          stamp: controller.stamps[i],
+                          stampIndex: i,
+                          page: page,
+                          scaledPageSizePx: const Size(612, 792),
+                          controller: controller,
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(controller.selectedIndices, isEmpty);
+
+      final finders = find.byType(DraggableStampWidget);
+      expect(finders, findsNWidgets(2));
+
+      await tester.tapAt(tester.getCenter(finders.at(0)));
+      await tester.pump();
+
+      expect(controller.isSelected(0), isTrue);
+      expect(controller.selectedIndices.length, 1);
+
+      await tester.tapAt(tester.getCenter(finders.at(1)));
+      await tester.pump();
+
+      expect(controller.isSelected(0), isTrue);
+      expect(controller.isSelected(1), isTrue);
+      expect(controller.selectedIndices.length, 2);
+    });
+
+    testWidgets('enableResize=false prevents resize gestures',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+      final initialWidth = (controller.stamps[0] as ImageStamp).widthPt;
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                        enableResize: false,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final finder = find.byType(DraggableStampWidget);
+      expect(finder, findsOneWidget);
+
+      final center = tester.getCenter(finder);
+      final gesture1 = await tester.startGesture(center - const Offset(20, 0));
+      final gesture2 = await tester.startGesture(center + const Offset(20, 0));
+      await tester.pump();
+
+      await gesture1.moveBy(const Offset(-10, 0));
+      await gesture2.moveBy(const Offset(10, 0));
+      await tester.pump();
+
+      await gesture1.up();
+      await gesture2.up();
+      await tester.pump();
+
+      final updatedWidth = (controller.stamps[0] as ImageStamp).widthPt;
+      expect(updatedWidth, equals(initialWidth));
+    });
+
+    testWidgets('enableRotate=false prevents rotation gestures',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+      final initialRotation = (controller.stamps[0] as ImageStamp).rotationDeg;
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                        enableRotate: false,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final finder = find.byType(DraggableStampWidget);
+      expect(finder, findsOneWidget);
+
+      final center = tester.getCenter(finder);
+      final gesture1 = await tester.startGesture(center + const Offset(30, 0));
+      final gesture2 = await tester.startGesture(center + const Offset(-30, 0));
+      await tester.pump();
+
+      await gesture1.moveBy(const Offset(0, -20));
+      await gesture2.moveBy(const Offset(0, 20));
+      await tester.pump();
+
+      await gesture1.up();
+      await gesture2.up();
+      await tester.pump();
+
+      final updatedRotation = (controller.stamps[0] as ImageStamp).rotationDeg;
+      expect(updatedRotation, equals(initialRotation));
+    });
+
+    testWidgets('enableSelection=false prevents tap selection',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                        enableSelection: false,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(controller.isSelected(0), isFalse);
+
+      final finder = find.byType(DraggableStampWidget);
+      expect(finder, findsOneWidget);
+
+      final center = tester.getCenter(finder);
+      await tester.tapAt(center);
+      await tester.pump();
+
+      expect(controller.isSelected(0), isFalse);
+      expect(controller.selectedIndices, isEmpty);
+    });
+
+    testWidgets('onStampSelected callback is called when stamp is tapped',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+
+      int? selectedIndex;
+      PdfStamp? selectedStamp;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                        onStampSelected: (index, stamp) {
+                          selectedIndex = index;
+                          selectedStamp = stamp;
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final finder = find.byType(DraggableStampWidget);
+      expect(finder, findsOneWidget);
+
+      final center = tester.getCenter(finder);
+      await tester.tapAt(center);
+      await tester.pump();
+
+      expect(selectedIndex, equals(0));
+      expect(selectedStamp, equals(stamp));
+    });
+
+    testWidgets('onStampUpdated callback is called when stamp is updated',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 100.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+
+      int? updatedIndex;
+      PdfStamp? updatedStamp;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                        enableResize: true,
+                        onStampUpdated: (index, stamp) {
+                          updatedIndex = index;
+                          updatedStamp = stamp;
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final finder = find.byType(DraggableStampWidget);
+      expect(finder, findsOneWidget);
+
+      final center = tester.getCenter(finder);
+      final gesture1 = await tester.startGesture(center - const Offset(20, 0));
+      final gesture2 = await tester.startGesture(center + const Offset(20, 0));
+      await tester.pump();
+
+      await gesture1.moveBy(const Offset(-10, 0));
+      await gesture2.moveBy(const Offset(10, 0));
+      await tester.pump();
+
+      await gesture1.up();
+      await gesture2.up();
+      await tester.pump();
+      await tester.pump();
+
+      expect(updatedIndex, equals(0));
+      expect(updatedStamp, isNotNull);
+      expect((updatedStamp! as ImageStamp).widthPt, isNot(100.0));
+
+      await gesture1.up();
+      await gesture2.up();
+      await tester.pump();
+    });
   });
 }
