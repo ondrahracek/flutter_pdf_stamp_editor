@@ -15,5 +15,9 @@ dependencies:
   pdfrx: ^2.2.18
   image_picker: ^1.0.7
 
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
 flutter:
   uses-material-design: true
