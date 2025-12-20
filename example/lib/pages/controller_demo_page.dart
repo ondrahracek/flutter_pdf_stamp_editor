@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf_stamp_editor/pdf_stamp_editor.dart';
 import '../widgets/stamp_info_panel.dart';
 import '../widgets/controller_controls.dart';
+import '../utils/asset_loader.dart';
 
 /// Demo page for PdfStampEditorController API.
 /// 
@@ -23,6 +24,7 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
   late final PdfStampEditorController controller;
   final List<String> _changeLog = [];
   Uint8List? _pdfBytes;
+  Uint8List? _defaultStampBytes;
   bool _showViewer = true;
 
   @override
@@ -30,6 +32,16 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
     super.initState();
     controller = PdfStampEditorController();
     controller.addListener(_onControllerChanged);
+    _loadDefaultStamp();
+  }
+
+  Future<void> _loadDefaultStamp() async {
+    try {
+      final bytes = await AssetLoader.loadAssetBytes('lib/assets/dog.png');
+      setState(() => _defaultStampBytes = bytes);
+    } catch (e) {
+      debugPrint('Failed to load default stamp: $e');
+    }
   }
 
   void _onControllerChanged() {
@@ -45,12 +57,14 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
   }
 
   void _addImageStamp() {
+    if (_defaultStampBytes == null) return;
+    
     final stamp = ImageStamp(
       pageIndex: 0,
       centerXPt: 200.0,
       centerYPt: 300.0,
       rotationDeg: 0.0,
-      pngBytes: Uint8List.fromList([1, 2, 3]),
+      pngBytes: _defaultStampBytes!,
       widthPt: 100.0,
       heightPt: 50.0,
     );
@@ -243,12 +257,13 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
                         },
                       ),
                     ),
-                    ListenableBuilder(
-                      listenable: controller,
-                      builder: (context, _) {
-                        return SingleChildScrollView(
-                          child: Column(
-                            children: [
+                    Expanded(
+                      child: ListenableBuilder(
+                        listenable: controller,
+                        builder: (context, _) {
+                          return SingleChildScrollView(
+                            child: Column(
+                              children: [
                               StampInfoPanel(
                                 stamps: controller.stamps,
                                 selectedIndices: controller.selectedIndices,
@@ -319,7 +334,8 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
                             ],
                           ),
                         );
-                      },
+                        },
+                      ),
                     ),
                   ],
                 )

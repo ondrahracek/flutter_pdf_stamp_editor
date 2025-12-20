@@ -314,9 +314,10 @@ class FeaturesDemoPageState extends State<FeaturesDemoPage> {
                         enableSelection: _enableSelection,
                       ),
                     ),
-                    SingleChildScrollView(
-                      child: Column(
-                        children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
                           FeatureTogglePanel(
                             enableDrag: _enableDrag,
                             enableResize: _enableResize,
@@ -442,6 +443,7 @@ class FeaturesDemoPageState extends State<FeaturesDemoPage> {
                           ),
                         ],
                       ),
+                    ),
                     ),
                   ],
                 )

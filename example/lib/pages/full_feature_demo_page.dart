@@ -10,6 +10,7 @@ import 'package:pdf_stamp_editor/pdf_stamp_editor.dart';
 import '../widgets/feature_toggle_panel.dart';
 import '../widgets/controller_controls.dart';
 import '../widgets/stamp_info_panel.dart';
+import '../utils/asset_loader.dart';
 
 class FullFeatureDemoPage extends StatefulWidget {
   const FullFeatureDemoPage({super.key});
@@ -30,6 +31,16 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
   void initState() {
     super.initState();
     controller = PdfStampEditorController();
+    _loadDefaultStamp();
+  }
+
+  Future<void> _loadDefaultStamp() async {
+    try {
+      final bytes = await AssetLoader.loadAssetBytes('lib/assets/dog.png');
+      setState(() => _pngBytes = bytes);
+    } catch (e) {
+      debugPrint('Failed to load default stamp: $e');
+    }
   }
 
   @override
@@ -160,6 +171,9 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
                         onStampDeleted: _onStampDeleted,
                         onTapDown: _onTapDown,
                         onLongPressDown: _onLongPressDown,
+                        onImageStampPlaced: () {
+                          setState(() => _pngBytes = null);
+                        },
                       ),
                     ),
                   ],
@@ -423,12 +437,14 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
   }
 
   void _addImageStamp() {
+    if (_pngBytes == null) return;
+    
     final stamp = ImageStamp(
       pageIndex: 0,
       centerXPt: 200.0,
       centerYPt: 300.0,
       rotationDeg: 0.0,
-      pngBytes: _pngBytes ?? Uint8List.fromList([1, 2, 3]),
+      pngBytes: _pngBytes!,
       widthPt: 100.0,
       heightPt: 50.0,
     );

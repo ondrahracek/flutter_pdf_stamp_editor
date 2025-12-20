@@ -145,6 +145,7 @@ class UtilitiesDemoPageState extends State<UtilitiesDemoPage> {
       ),
       body: SingleChildScrollView(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Card(
               child: Padding(
@@ -338,7 +339,8 @@ class UtilitiesDemoPageState extends State<UtilitiesDemoPage> {
               ),
             ),
             if (_pdfBytes != null) ...[
-              Expanded(
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.7,
                 child: Column(
                   children: [
                     Expanded(

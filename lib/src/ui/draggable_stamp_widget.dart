@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -91,6 +92,13 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
       yPt: widget.stamp.centerYPt,
       scaledPageSizePx: widget.scaledPageSizePx,
     );
+    
+    if (kDebugMode) {
+      debugPrint('[PdfStampEditor] DraggableStampWidget.build: '
+          'stamp.pdfPos=(${widget.stamp.centerXPt}, ${widget.stamp.centerYPt}), '
+          'scaledPageSizePx=${widget.scaledPageSizePx}, '
+          'posPx=$posPx');
+    }
 
     Widget positionedChild;
     if (widget.stamp case ImageStamp s) {

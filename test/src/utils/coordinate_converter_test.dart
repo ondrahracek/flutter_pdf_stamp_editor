@@ -269,6 +269,60 @@ void main() {
         expect(roundTripPdfPoint.x, closeTo(originalPdfX, 0.1));
         expect(roundTripPdfPoint.y, closeTo(originalPdfY, 0.1));
       });
+
+      test('coordinate conversion is consistent across different scaled page sizes', () {
+        final page = MockPdfPage(
+          width: 612.0,
+          height: 792.0,
+          rotation: PdfPageRotation.none,
+        );
+        
+        // Simulate different viewer sizes (e.g., full screen vs half screen)
+        const fullPageSize = Size(612.0, 792.0);
+        const constrainedPageSize = Size(306.0, 396.0);
+        
+        const pdfX = 306.0;
+        const pdfY = 396.0;
+        
+        // Convert with full size
+        final fullSizeOffset = PdfCoordinateConverter.pdfPointToViewerOffset(
+          page: page,
+          xPt: pdfX,
+          yPt: pdfY,
+          scaledPageSizePx: fullPageSize,
+        );
+        
+        // Convert with constrained size
+        final constrainedSizeOffset = PdfCoordinateConverter.pdfPointToViewerOffset(
+          page: page,
+          xPt: pdfX,
+          yPt: pdfY,
+          scaledPageSizePx: constrainedPageSize,
+        );
+        
+        // The relative position should be the same (both should be at center)
+        expect(fullSizeOffset.dx / fullPageSize.width, closeTo(0.5, 0.01));
+        expect(fullSizeOffset.dy / fullPageSize.height, closeTo(0.5, 0.01));
+        expect(constrainedSizeOffset.dx / constrainedPageSize.width, closeTo(0.5, 0.01));
+        expect(constrainedSizeOffset.dy / constrainedPageSize.height, closeTo(0.5, 0.01));
+        
+        // Round-trip should work with both sizes
+        final roundTripFull = PdfCoordinateConverter.viewerOffsetToPdfPoint(
+          page: page,
+          localOffsetTopLeft: fullSizeOffset,
+          scaledPageSizePx: fullPageSize,
+        );
+        final roundTripConstrained = PdfCoordinateConverter.viewerOffsetToPdfPoint(
+          page: page,
+          localOffsetTopLeft: constrainedSizeOffset,
+          scaledPageSizePx: constrainedPageSize,
+        );
+        
+        expect(roundTripFull.x, closeTo(pdfX, 0.1));
+        expect(roundTripFull.y, closeTo(pdfY, 0.1));
+        expect(roundTripConstrained.x, closeTo(pdfX, 0.1));
+        expect(roundTripConstrained.y, closeTo(pdfY, 0.1));
+      });
     });
 
     group('pageScaleFactors', () {

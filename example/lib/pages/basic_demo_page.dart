@@ -242,6 +242,9 @@ class _BasicDemoPageState extends State<BasicDemoPage> {
                         onStampsChanged: (stamps) {
                           setState(() => _stamps = stamps);
                         },
+                        onImageStampPlaced: () {
+                          setState(() => _pngBytes = null);
+                        },
                       ),
                     ),
                   ],

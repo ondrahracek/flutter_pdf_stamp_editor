@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +39,7 @@ class PdfStampEditorPage extends StatefulWidget {
   final Widget Function(BuildContext context, PdfStamp stamp, PdfPage page, Size scaledPageSizePx, Offset position)? stampBuilder;
   final VoidCallback? onTapDown;
   final VoidCallback? onLongPressDown;
+  final VoidCallback? onImageStampPlaced;
 
   const PdfStampEditorPage({
     super.key,
@@ -59,6 +59,7 @@ class PdfStampEditorPage extends StatefulWidget {
     this.stampBuilder,
     this.onTapDown,
     this.onLongPressDown,
+    this.onImageStampPlaced,
   });
 
   @override
@@ -263,11 +264,21 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
               pdfBytes,
               sourceName: 'stamped.pdf',
               params: PdfViewerParams(
-                pageOverlaysBuilder: (context, pageRect, page) => [
-                  Positioned.fromRect(
-                    rect: pageRect,
-                    child: _PageOverlay(
-                      page: page,
+                pageOverlaysBuilder: (context, pageRect, page) {
+                  if (kDebugMode) {
+                    debugPrint('[PdfStampEditor] pageOverlaysBuilder (web): '
+                        'pageRect=$pageRect, pageRect.size=${pageRect.size}, '
+                        'page=${page.pageNumber}, page.dimensions=${page.width}x${page.height}');
+                  }
+                  return [
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      width: pageRect.size.width,
+                      height: pageRect.size.height,
+                      child: _PageOverlay(
+                        page: page,
+                        scaledPageSizePx: pageRect.size,
                       stamps: stamps,
                       controller: widget.controller,
                       enableDrag: widget.enableDrag,
@@ -299,6 +310,7 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                         );
                         _addStamp(stamp);
                         widget.onTapDown?.call();
+                        widget.onImageStampPlaced?.call();
                       },
                       onLongPressDown: (offset) {
                         final pdfPt = PdfCoordinateConverter.viewerOffsetToPdfPoint(
@@ -320,7 +332,8 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                       },
                     ),
                   ),
-                ],
+                  ];
+                },
               ),
             );
           }
@@ -333,11 +346,21 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
           return PdfViewer.file(
             _tempPdfFile!.path,
             params: PdfViewerParams(
-              pageOverlaysBuilder: (context, pageRect, page) => [
-                Positioned.fromRect(
-                  rect: pageRect,
-                  child: _PageOverlay(
-                    page: page,
+              pageOverlaysBuilder: (context, pageRect, page) {
+                if (kDebugMode) {
+                  debugPrint('[PdfStampEditor] pageOverlaysBuilder (native): '
+                      'pageRect=$pageRect, pageRect.size=${pageRect.size}, '
+                      'page=${page.pageNumber}, page.dimensions=${page.width}x${page.height}');
+                }
+                return [
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    width: pageRect.size.width,
+                    height: pageRect.size.height,
+                    child: _PageOverlay(
+                      page: page,
+                      scaledPageSizePx: pageRect.size,
                     stamps: stamps,
                     controller: widget.controller,
                     enableDrag: widget.enableDrag,
@@ -366,6 +389,7 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                       );
                       _addStamp(stamp);
                       widget.onTapDown?.call();
+                      widget.onImageStampPlaced?.call();
                     },
                     onLongPressDown: (offset) {
                       final pdfPt = PdfCoordinateConverter.viewerOffsetToPdfPoint(
@@ -386,8 +410,9 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                       widget.onLongPressDown?.call();
                     },
                   ),
-                ),
-              ],
+                  ),
+                  ];
+                },
             ),
           );
           },
@@ -401,6 +426,7 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
 class _PageOverlay extends StatelessWidget {
   const _PageOverlay({
     required this.page,
+    required this.scaledPageSizePx,
     required this.stamps,
     required this.controller,
     required this.enableDrag,
@@ -415,6 +441,7 @@ class _PageOverlay extends StatelessWidget {
   });
 
   final PdfPage page;
+  final Size scaledPageSizePx;
   final List<PdfStamp> stamps;
   final PdfStampEditorController? controller;
   final bool enableDrag;
@@ -429,21 +456,26 @@ class _PageOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final scaledPageSizePx =
-            Size(constraints.maxWidth, constraints.maxHeight);
+    if (kDebugMode) {
+      debugPrint('[PdfStampEditor] _PageOverlay.build: '
+          'page=${page.pageNumber}, scaledPageSizePx=$scaledPageSizePx, '
+          'stamps.count=${stamps.length}');
+    }
+    
+    final pageStamps = <PdfStamp>[];
+    final pageStampIndices = <int>[];
+    for (var i = 0; i < stamps.length; i++) {
+      if (stamps[i].pageIndex == page.pageNumber - 1) {
+        pageStamps.add(stamps[i]);
+        pageStampIndices.add(i);
+      }
+    }
+    
+    if (kDebugMode && pageStamps.isNotEmpty) {
+      debugPrint('[PdfStampEditor] _PageOverlay: Found ${pageStamps.length} stamps for page ${page.pageNumber}');
+    }
 
-        final pageStamps = <PdfStamp>[];
-        final pageStampIndices = <int>[];
-        for (var i = 0; i < stamps.length; i++) {
-          if (stamps[i].pageIndex == page.pageNumber - 1) {
-            pageStamps.add(stamps[i]);
-            pageStampIndices.add(i);
-          }
-        }
-
-        return GestureDetector(
+    return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTapDown: (d) {
             if (controller != null) {
@@ -519,8 +551,6 @@ class _PageOverlay extends StatelessWidget {
             ],
           ),
         );
-      },
-    );
   }
 
   Widget _buildStampWidget({
@@ -537,6 +567,13 @@ class _PageOverlay extends StatelessWidget {
       yPt: stamp.centerYPt,
       scaledPageSizePx: scaledPageSizePx,
     );
+    
+    if (kDebugMode) {
+      debugPrint('[PdfStampEditor] _buildStampWidget: '
+          'stamp.pdfPos=(${stamp.centerXPt}, ${stamp.centerYPt}), '
+          'scaledPageSizePx=$scaledPageSizePx, '
+          'posPx=$posPx');
+    }
 
     if (stampBuilder != null) {
       return Positioned(

@@ -264,5 +264,16 @@ void main() {
     
     expect(find.text('[0] Image - Page 1'), findsOneWidget);
   });
+
+  testWidgets('ControllerDemoPage can render without overflow errors', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: ControllerDemoPage(),
+      ),
+    );
+
+    expect(find.byType(ControllerDemoPage), findsOneWidget);
+    expect(find.byType(AppBar), findsOneWidget);
+  });
 }
 

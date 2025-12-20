@@ -165,6 +165,9 @@ class CustomBuilderDemoPageState extends State<CustomBuilderDemoPage> {
                 pdfBytes: _pdfBytes!,
                 pngBytes: _pngBytes,
                 stampBuilder: _useCustomBuilder ? (context, stamp, page, size, pos) => _buildCustomStamp(context, stamp, page, size, pos, _selectedStyle) : null,
+                onImageStampPlaced: () {
+                  setState(() => _pngBytes = null);
+                },
               ),
             )
           else if (_pdfBytes == null)

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:pdf_stamp_editor/pdf_stamp_editor.dart';
+import '../utils/asset_loader.dart';
 
 class EdgeCasesPerformanceDemoPage extends StatefulWidget {
   const EdgeCasesPerformanceDemoPage({super.key});
@@ -22,8 +23,17 @@ class EdgeCasesPerformanceDemoPageState extends State<EdgeCasesPerformanceDemoPa
   void initState() {
     super.initState();
     controller = PdfStampEditorController();
-    _pngBytes = Uint8List.fromList([1, 2, 3]);
     SchedulerBinding.instance.addTimingsCallback(_onFrameTimings);
+    _loadDefaultStamp();
+  }
+
+  Future<void> _loadDefaultStamp() async {
+    try {
+      final bytes = await AssetLoader.loadAssetBytes('lib/assets/dog.png');
+      setState(() => _pngBytes = bytes);
+    } catch (e) {
+      debugPrint('Failed to load default stamp: $e');
+    }
   }
 
   void _onFrameTimings(List<FrameTiming> timings) {
