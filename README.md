@@ -26,7 +26,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  pdf_stamp_editor: ^0.3.0
+  pdf_stamp_editor: ^0.4.0
 ```
 
 ### Quick Start
@@ -71,17 +71,16 @@ class MyApp extends StatelessWidget {
 
 ### Basic Stamp Placement
 
-Place stamps by tapping or long-pressing on the PDF:
+Add stamps by tapping on the PDF. The behavior depends on the `mode` parameter (default is `image`):
 
-- **Tap**: Places an image stamp (requires `pngBytes` to be set)
-- **Long Press**: Places a text stamp with "APPROVED" text
+- **Tap**: Places a stamp (image or text) at the tapped location
+- **Long Press**: Disabled by default (can be enabled via `enableLongPress: true`)
 
 ```dart
 PdfStampEditorPage(
   pdfBytes: pdfBytes,
-  pngBytes: pngBytes, // Required for tap-to-place image stamps
-  stampWidthPt: 140, // Optional: stamp width in points (default: 140)
-  stampRotationDeg: 0, // Optional: rotation in degrees (default: 0)
+  pngBytes: pngBytes, 
+  mode: StampEditorMode.image, // Default: image. Options: none, text, image
   onStampsChanged: (stamps) {
     print('Stamps count: ${stamps.length}');
   },
@@ -131,6 +130,8 @@ PdfStampEditorPage(
 ```
 
 **Configuration Options:**
+- `mode`: Control tap behavior (`none`, `text`, or `image`)
+- `enableLongPress`: Enable/disable adding text stamps via long-press (default: `false`)
 - `TextStampConfig`: Customize text stamp text, font size, color, and weight
 - `ImageStampConfig`: Configure image stamp dimensions and aspect ratio behavior
   - When `maintainAspectRatio: true` and `heightPt: null`, height is automatically computed from image dimensions
@@ -475,6 +476,7 @@ flutter run
 | `TextStamp`                | Text stamp with customizable text            |
 | `TextStampConfig`          | Configuration for text stamp creation        |
 | `ImageStampConfig`         | Configuration for image stamp creation       |
+| `StampEditorMode`          | Interaction mode enum (none, text, image)    |
 | `SelectionConfig`          | Configuration for selection styling          |
 | `PdfStampEditorExporter`   | Export engine for applying stamps to PDFs    |
 | `PdfCoordinateConverter`   | Utilities for coordinate conversion          |

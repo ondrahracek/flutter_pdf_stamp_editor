@@ -1,3 +1,21 @@
+## 0.4.0
+
+### Features
+
+* **Interaction Modes**: Added `StampEditorMode` to control tap behavior (`none`, `text`, or `image`)
+* **Precise Selection**: Significantly improved hit-testing for stamps, especially for text stamps
+* **Long Press Control**: Added `enableLongPress` parameter (disabled by default)
+
+### Improvements
+
+* **Refactored Gesture Handling**: Internal cleanup for better performance and maintainability
+
+### API Changes
+
+* `PdfStampEditorPage`:
+  * New parameter: `mode` (default: `StampEditorMode.image`)
+  * New parameter: `enableLongPress` (default: `false`)
+
 ## 0.3.0
 
 ### Features
