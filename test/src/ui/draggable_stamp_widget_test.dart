@@ -2478,7 +2478,7 @@ void main() {
     });
 
     testWidgets('multiple stamps can be selected', (WidgetTester tester) async {
-      final controller = PdfStampEditorController();
+      final controller = PdfStampEditorController(enableMultiSelection: true);
       final stamp1 = ImageStamp(
         pageIndex: 0,
         centerXPt: 100.0,

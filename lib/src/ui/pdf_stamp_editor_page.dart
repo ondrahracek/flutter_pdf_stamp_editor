@@ -44,6 +44,18 @@ class TextStampConfig {
         fontWeight = FontWeight.bold;
 }
 
+/// Interaction modes for the stamp editor
+enum StampEditorMode {
+  /// No stamps can be added via tap
+  none,
+
+  /// Tapping adds a text stamp
+  text,
+
+  /// Tapping adds an image stamp
+  image,
+}
+
 /// Configuration for default image stamp creation
 class ImageStampConfig {
   /// Width in points for image stamps
@@ -111,6 +123,8 @@ class PdfStampEditorPage extends StatefulWidget {
   final ImageStampConfig imageStampConfig;
   final SelectionConfig selectionConfig;
   final String webSourceName;
+  final StampEditorMode mode;
+  final bool enableLongPress;
 
   const PdfStampEditorPage({
     super.key,
@@ -135,6 +149,8 @@ class PdfStampEditorPage extends StatefulWidget {
     this.imageStampConfig = const ImageStampConfig(),
     this.selectionConfig = const SelectionConfig(),
     this.webSourceName = 'stamped.pdf',
+    this.mode = StampEditorMode.image,
+    this.enableLongPress = false,
   });
 
   @override
@@ -381,6 +397,10 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                               widget.onImageStampPlaced?.call();
                             },
                             onLongPressDown: (offset) {
+                              if (!widget.enableLongPress) {
+                                widget.onLongPressDown?.call();
+                                return;
+                              }
                               final config = widget.textStampConfig;
 
                               if (config.text == null) {
@@ -459,43 +479,71 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                           pageRects: _pageRects,
                           pages: _pages,
                           onTapDown: (offset) {
-                            final png = widget.pngBytes;
-                            if (png == null) {
+                            if (widget.mode == StampEditorMode.none) {
+                              widget.onTapDown?.call();
                               return;
                             }
+
                             final pdfPt =
                                 PdfCoordinateConverter.viewerOffsetToPdfPoint(
                               page: page,
                               localOffsetTopLeft: offset,
                               scaledPageSizePx: pageRect.size,
                             );
-                            final config = widget.imageStampConfig;
-                            double heightPt;
-                            if (config.heightPt != null) {
-                              heightPt = config.heightPt!;
-                            } else if (config.maintainAspectRatio) {
-                              final aspectRatio = _getImageAspectRatio(png);
-                              heightPt = aspectRatio != null
-                                  ? config.widthPt * aspectRatio
-                                  : config.widthPt * 0.35;
-                            } else {
-                              heightPt = config.widthPt * 0.35;
-                            }
 
-                            final stamp = ImageStamp(
-                              pageIndex: page.pageNumber - 1,
-                              centerXPt: pdfPt.x,
-                              centerYPt: pdfPt.y,
-                              rotationDeg: widget.stampRotationDeg,
-                              pngBytes: png,
-                              widthPt: config.widthPt,
-                              heightPt: heightPt,
-                            );
-                            _addStamp(stamp);
+                            if (widget.mode == StampEditorMode.image) {
+                              final png = widget.pngBytes;
+                              if (png == null) {
+                                return;
+                              }
+                              final config = widget.imageStampConfig;
+                              double heightPt;
+                              if (config.heightPt != null) {
+                                heightPt = config.heightPt!;
+                              } else if (config.maintainAspectRatio) {
+                                final aspectRatio = _getImageAspectRatio(png);
+                                heightPt = aspectRatio != null
+                                    ? config.widthPt * aspectRatio
+                                    : config.widthPt * 0.35;
+                              } else {
+                                heightPt = config.widthPt * 0.35;
+                              }
+
+                              final stamp = ImageStamp(
+                                pageIndex: page.pageNumber - 1,
+                                centerXPt: pdfPt.x,
+                                centerYPt: pdfPt.y,
+                                rotationDeg: widget.stampRotationDeg,
+                                pngBytes: png,
+                                widthPt: config.widthPt,
+                                heightPt: heightPt,
+                              );
+                              _addStamp(stamp);
+                              widget.onImageStampPlaced?.call();
+                            } else if (widget.mode == StampEditorMode.text) {
+                              final config = widget.textStampConfig;
+                              if (config.text == null) {
+                                return;
+                              }
+                              _addStamp(
+                                TextStamp(
+                                  pageIndex: page.pageNumber - 1,
+                                  centerXPt: pdfPt.x,
+                                  centerYPt: pdfPt.y,
+                                  rotationDeg: widget.stampRotationDeg,
+                                  text: config.text!,
+                                  fontSizePt: config.fontSizePt,
+                                  color: config.color,
+                                ),
+                              );
+                            }
                             widget.onTapDown?.call();
-                            widget.onImageStampPlaced?.call();
                           },
                           onLongPressDown: (offset) {
+                            if (!widget.enableLongPress) {
+                              widget.onLongPressDown?.call();
+                              return;
+                            }
                             final config = widget.textStampConfig;
 
                             if (config.text == null) {
@@ -635,11 +683,23 @@ class _PageOverlay extends StatelessWidget {
               final scale = PdfCoordinateConverter.pageScaleFactors(
                   page, scaledPageSizePx);
               final fontPx = s.fontSizePt * scale.sy;
+
+              final textPainter = TextPainter(
+                text: TextSpan(
+                  text: s.text,
+                  style: TextStyle(
+                    fontSize: fontPx,
+                    fontWeight: textStampConfig.fontWeight,
+                  ),
+                ),
+                textDirection: TextDirection.ltr,
+              )..layout();
+
               final stampRect = Rect.fromLTWH(
-                stampPosPx.dx,
-                stampPosPx.dy,
-                fontPx * 2,
-                fontPx,
+                stampPosPx.dx - textPainter.width / 2,
+                stampPosPx.dy - textPainter.height / 2,
+                textPainter.width,
+                textPainter.height,
               );
               if (stampRect.contains(tappedPoint)) {
                 hitAnyStamp = true;
@@ -778,9 +838,20 @@ class _PageOverlay extends StatelessWidget {
           PdfCoordinateConverter.pageScaleFactors(page, scaledPageSizePx);
       final fontPx = s.fontSizePt * scale.sy;
 
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: s.text,
+          style: TextStyle(
+            fontSize: fontPx,
+            fontWeight: textStampConfig.fontWeight,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
       return Positioned(
-        left: posPx.dx,
-        top: posPx.dy,
+        left: posPx.dx - textPainter.width / 2,
+        top: posPx.dy - textPainter.height / 2,
         child: Transform.rotate(
           angle: s.rotationDeg * math.pi / 180,
           child: Text(

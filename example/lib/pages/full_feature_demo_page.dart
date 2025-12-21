@@ -26,6 +26,8 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
   Uint8List? _pngBytes;
   File? _exportedPdfFile;
   bool _showViewer = true;
+  StampEditorMode _mode = StampEditorMode.image;
+  bool _enableLongPress = true;
 
   @override
   void initState() {
@@ -130,6 +132,7 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
                                       enableRotate: true,
                                       enableSelection: true,
                                     ),
+                                    _buildModeSelector(),
                                     StampInfoPanel(
                                       stamps: controller.stamps,
                                       selectedIndices: controller.selectedIndices,
@@ -161,6 +164,8 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
                         pdfBytes: _pdfBytes!,
                         pngBytes: _pngBytes,
                         controller: controller,
+                        mode: _mode,
+                        enableLongPress: _enableLongPress,
                         enableDrag: true,
                         enableResize: true,
                         enableRotate: true,
@@ -172,7 +177,8 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
                         onTapDown: _onTapDown,
                         onLongPressDown: _onLongPressDown,
                         onImageStampPlaced: () {
-                          setState(() => _pngBytes = null);
+                          // Keep PNG bytes so we can keep placing in image mode
+                          // setState(() => _pngBytes = null); 
                         },
                       ),
                     ),
@@ -289,19 +295,84 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
             const SizedBox(height: 8),
             const Text('2. Load PNG: Tap the image icon to pick a stamp image'),
             const SizedBox(height: 8),
-            const Text('3. Place: Tap on PDF to place image stamp, long-press for text stamp'),
+            const Text(
+                '3. Mode: Choose what happens on tap (None, Text, or Image)'),
             const SizedBox(height: 8),
-            const Text('4. Drag: Tap and hold a stamp, then drag to move it'),
+            const Text(
+                '4. Place: Tap on PDF to place stamp based on Mode, or long-press for text (if enabled)'),
             const SizedBox(height: 8),
-            const Text('5. Resize: Pinch to zoom on a stamp to resize it'),
+            const Text('5. Drag: Tap and hold a stamp, then drag to move it'),
             const SizedBox(height: 8),
-            const Text('6. Rotate: Use rotation gesture on a stamp to rotate it'),
+            const Text('6. Resize: Pinch to zoom on a stamp to resize it'),
             const SizedBox(height: 8),
-            const Text('7. Select: Tap a stamp to select it'),
+            const Text(
+                '7. Rotate: Use rotation gesture on a stamp to rotate it'),
             const SizedBox(height: 8),
-            const Text('8. Delete: Use controller buttons or delete selected stamps'),
+            const Text('8. Select: Tap a stamp to select it'),
             const SizedBox(height: 8),
-            const Text('9. Export: Tap the save icon to export stamped PDF'),
+            const Text(
+                '9. Delete: Use controller buttons or delete selected stamps'),
+            const SizedBox(height: 8),
+            const Text('10. Export: Tap the save icon to export stamped PDF'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModeSelector() {
+    return Card(
+      margin: const EdgeInsets.all(8),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Interaction Settings',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Text('Mode: '),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SegmentedButton<StampEditorMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: StampEditorMode.none,
+                        label: Text('None'),
+                        icon: Icon(Icons.block),
+                      ),
+                      ButtonSegment(
+                        value: StampEditorMode.text,
+                        label: Text('Text'),
+                        icon: Icon(Icons.text_fields),
+                      ),
+                      ButtonSegment(
+                        value: StampEditorMode.image,
+                        label: Text('Image'),
+                        icon: Icon(Icons.image),
+                      ),
+                    ],
+                    selected: {_mode},
+                    onSelectionChanged: (newSelection) {
+                      setState(() {
+                        _mode = newSelection.first;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SwitchListTile(
+              title: const Text('Enable Long Press to add text'),
+              value: _enableLongPress,
+              onChanged: (val) => setState(() => _enableLongPress = val),
+              contentPadding: EdgeInsets.zero,
+            ),
           ],
         ),
       ),

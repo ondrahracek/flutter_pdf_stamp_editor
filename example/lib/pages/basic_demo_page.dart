@@ -40,6 +40,10 @@ class _BasicDemoPageState extends State<BasicDemoPage> {
   // These are applied to new stamps when placed via tap
   double _stampWidthPt = 140; // Width in points (1/72 inch), default 140pt
   double _stampRotationDeg = 0; // Rotation in degrees, default 0° (no rotation)
+  
+  // Interaction mode settings
+  StampEditorMode _mode = StampEditorMode.image;
+  bool _enableLongPress = true;
 
   /// Picks a PDF file using the file picker.
   /// 
@@ -239,11 +243,14 @@ class _BasicDemoPageState extends State<BasicDemoPage> {
                         pngBytes: _pngBytes,
                         stampWidthPt: _stampWidthPt,
                         stampRotationDeg: _stampRotationDeg,
+                        mode: _mode,
+                        enableLongPress: _enableLongPress,
                         onStampsChanged: (stamps) {
                           setState(() => _stamps = stamps);
                         },
                         onImageStampPlaced: () {
-                          setState(() => _pngBytes = null);
+                          // Keep PNG bytes so we can keep placing in image mode
+                          // setState(() => _pngBytes = null);
                         },
                       ),
                     ),
@@ -306,11 +313,20 @@ class _BasicDemoPageState extends State<BasicDemoPage> {
             const SizedBox(height: 8),
             const Text('2. Load PNG: Tap the image icon to pick a stamp image'),
             const SizedBox(height: 8),
-            const Text('3. Place stamps: Tap on the PDF to place image stamps'),
+            const Text(
+                '3. Mode: Choose what happens on tap (None, Text, or Image)'),
             const SizedBox(height: 8),
-            const Text('4. Adjust settings: Use sliders to change stamp width and rotation'),
+            const Text(
+                '4. Place stamps: Tap on the PDF to place stamps based on Mode'),
             const SizedBox(height: 8),
-            const Text('5. Export: Tap the save icon to export the stamped PDF'),
+            const Text(
+                '5. Long Press: If enabled, long-press to add "APPROVED" text'),
+            const SizedBox(height: 8),
+            const Text(
+                '6. Adjust settings: Use sliders to change stamp width and rotation'),
+            const SizedBox(height: 8),
+            const Text(
+                '7. Export: Tap the save icon to export the stamped PDF'),
           ],
         ),
       ),
@@ -341,6 +357,51 @@ class _BasicDemoPageState extends State<BasicDemoPage> {
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Interaction settings
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 8,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Mode: '),
+                  DropdownButton<StampEditorMode>(
+                    value: _mode,
+                    items: const [
+                      DropdownMenuItem(
+                        value: StampEditorMode.none,
+                        child: Text('None'),
+                      ),
+                      DropdownMenuItem(
+                        value: StampEditorMode.text,
+                        child: Text('Text'),
+                      ),
+                      DropdownMenuItem(
+                        value: StampEditorMode.image,
+                        child: Text('Image'),
+                      ),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) setState(() => _mode = v);
+                    },
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Long Press Text: '),
+                  Switch(
+                    value: _enableLongPress,
+                    onChanged: (v) => setState(() => _enableLongPress = v),
+                  ),
+                ],
               ),
             ],
           ),

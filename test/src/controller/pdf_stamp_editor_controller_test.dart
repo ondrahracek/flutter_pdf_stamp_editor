@@ -312,6 +312,68 @@ void main() {
       expect(controller.isSelected(0), isTrue);
     });
 
+    test('selectStamp deselects previously selected stamp by default', () {
+      final controller = PdfStampEditorController();
+      final stamp1 = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 100.0,
+        centerYPt: 200.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([1, 2, 3]),
+        widthPt: 50.0,
+        heightPt: 30.0,
+      );
+      final stamp2 = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 200.0,
+        centerYPt: 300.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([4, 5, 6]),
+        widthPt: 50.0,
+        heightPt: 30.0,
+      );
+      controller.addStamp(stamp1);
+      controller.addStamp(stamp2);
+      controller.selectStamp(0);
+
+      controller.selectStamp(1);
+
+      expect(controller.isSelected(0), isFalse);
+      expect(controller.isSelected(1), isTrue);
+      expect(controller.selectedIndices, equals({1}));
+    });
+
+    test('selectStamp keeps previously selected stamps when multi-selection is enabled', () {
+      final controller = PdfStampEditorController(enableMultiSelection: true);
+      final stamp1 = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 100.0,
+        centerYPt: 200.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([1, 2, 3]),
+        widthPt: 50.0,
+        heightPt: 30.0,
+      );
+      final stamp2 = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 200.0,
+        centerYPt: 300.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([4, 5, 6]),
+        widthPt: 50.0,
+        heightPt: 30.0,
+      );
+      controller.addStamp(stamp1);
+      controller.addStamp(stamp2);
+      controller.selectStamp(0);
+
+      controller.selectStamp(1);
+
+      expect(controller.isSelected(0), isTrue);
+      expect(controller.isSelected(1), isTrue);
+      expect(controller.selectedIndices, equals({0, 1}));
+    });
+
     test('clearSelection removes all selected indices', () {
       final controller = PdfStampEditorController();
       final stamp1 = ImageStamp(
@@ -345,7 +407,7 @@ void main() {
     });
 
     test('deleteSelectedStamps removes selected stamps and clears selection', () {
-      final controller = PdfStampEditorController();
+      final controller = PdfStampEditorController(enableMultiSelection: true);
       final stamp1 = ImageStamp(
         pageIndex: 0,
         centerXPt: 100.0,

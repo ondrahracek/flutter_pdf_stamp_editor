@@ -3,13 +3,16 @@ import 'package:flutter/foundation.dart';
 import '../model/pdf_stamp.dart';
 
 class PdfStampEditorController extends ChangeNotifier {
-  PdfStampEditorController({List<PdfStamp>? initialStamps})
-      : _stamps = List.from(initialStamps ?? []);
+  PdfStampEditorController({
+    List<PdfStamp>? initialStamps,
+    this.enableMultiSelection = false,
+  }) : _stamps = List.from(initialStamps ?? []);
 
   final List<PdfStamp> _stamps;
   final Set<int> _selectedIndices = <int>{};
   int? _draggingStampIndex;
   int? _dragStartPageIndex;
+  final bool enableMultiSelection;
 
   List<PdfStamp> get stamps => List.unmodifiable(_stamps);
   Set<int> get selectedIndices => Set.unmodifiable(_selectedIndices);
@@ -22,6 +25,9 @@ class PdfStampEditorController extends ChangeNotifier {
     if (toggle && _selectedIndices.contains(index)) {
       _selectedIndices.remove(index);
     } else {
+      if (!enableMultiSelection) {
+        _selectedIndices.clear();
+      }
       _selectedIndices.add(index);
     }
     notifyListeners();
