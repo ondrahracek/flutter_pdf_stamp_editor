@@ -85,11 +85,11 @@ class _BasicDemoPageState extends State<BasicDemoPage> {
     _snackSuccess('PNG image loaded successfully');
   }
 
-  /// Exports the PDF with stamps embedded using PdfiumStamper.
+  /// Exports the PDF with stamps embedded using PdfStampEditorExporter.
   /// 
   /// Demonstrates:
   /// - Platform detection for FFI support
-  /// - PdfiumStamper.applyStamps() API for embedding stamps
+  /// - PdfStampEditorExporter.applyStamps() API for embedding stamps
   /// - File system operations (writing exported PDF)
   /// - Progress indication by hiding viewer during export
   /// - Comprehensive success feedback with file path, size, and stamp count
@@ -118,9 +118,9 @@ class _BasicDemoPageState extends State<BasicDemoPage> {
     await WidgetsBinding.instance.endOfFrame;
 
     try {
-      // Apply stamps to PDF using PdfiumStamper
+      // Apply stamps to PDF using PdfStampEditorExporter
       // This embeds the stamps as real PDF objects in the document
-      final outBytes = await PdfiumStamper.applyStamps(
+      final outBytes = await PdfStampEditorExporter.applyStamps(
         inputPdfBytes: pdfBytes,
         stamps: _stamps,
       );

@@ -990,7 +990,7 @@
                     "PdfStampEditorPage (all parameters)",
                     "PdfCoordinateConverter (all methods)",
                     "MatrixCalculator (all methods)",
-                    "PdfiumStamper (export)",
+                    "PdfStampEditorExporter (export)",
                     "ImageStamp.copyWith()",
                     "TextStamp.copyWith()",
                     "All callbacks (6 total)",

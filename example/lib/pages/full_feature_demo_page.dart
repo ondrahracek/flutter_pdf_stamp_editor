@@ -404,7 +404,7 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
     await WidgetsBinding.instance.endOfFrame;
 
     try {
-      final outBytes = await PdfiumStamper.applyStamps(
+      final outBytes = await PdfStampEditorExporter.applyStamps(
         inputPdfBytes: pdfBytes,
         stamps: controller.stamps,
       );

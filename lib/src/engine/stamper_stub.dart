@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import '../model/pdf_stamp.dart';
 
-class PdfiumStamper {
+class PdfStampEditorExporter {
   static Future<Uint8List> applyStamps({
     required Uint8List inputPdfBytes,
     required List<PdfStamp> stamps,

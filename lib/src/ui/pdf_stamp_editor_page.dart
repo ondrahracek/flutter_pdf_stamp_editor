@@ -186,7 +186,7 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
     await WidgetsBinding.instance.endOfFrame;
 
     try {
-      final outBytes = await PdfiumStamper.applyStamps(
+      final outBytes = await PdfStampEditorExporter.applyStamps(
         inputPdfBytes: pdfBytes,
         stamps: stamps,
       );

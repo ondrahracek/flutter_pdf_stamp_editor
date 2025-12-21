@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 
 import '../model/pdf_stamp.dart';
 
-/// Platform stamper that delegates to native code via MethodChannel.
+/// Platform exporter that delegates to native code via MethodChannel.
 ///
-/// Android: PDFium-based stamping implemented in native code.
-/// iOS: PDFKit-based stamping implemented in native code.
-class PdfiumStamper {
+/// Android: PdfBox-Android library for stamping implemented in native code.
+/// iOS: PDFKit framework for stamping implemented in native code.
+class PdfStampEditorExporter {
   static const MethodChannel _channel = MethodChannel('pdf_stamp_editor');
 
   static Future<Uint8List> applyStamps({
