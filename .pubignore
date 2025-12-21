@@ -1,6 +1,10 @@
 # Example app (not part of the published package)
 example/
 
+# Building plans
+plan.json
+example_plan.json
+
 # Tests (not published to pub.dev)
 test/
 
@@ -41,3 +45,7 @@ build/
 coverage/
 **/coverage/
 
+# Android build artifacts
+android/.gradle/
+android/.cxx/
+android/local.properties
