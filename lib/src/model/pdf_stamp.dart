@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
+
 /// Base class for PDF stamps (sealed class hierarchy).
 /// 
 /// All stamps use PDF user-space coordinates (points, origin bottom-left).
@@ -70,10 +72,12 @@ class TextStamp extends PdfStamp {
     required super.rotationDeg,
     required this.text,
     required this.fontSizePt,
+    required this.color,
   });
 
   final String text;
   final double fontSizePt;
+  final Color color;
 
   TextStamp copyWith({
     int? pageIndex,
@@ -82,6 +86,7 @@ class TextStamp extends PdfStamp {
     double? rotationDeg,
     String? text,
     double? fontSizePt,
+    Color? color,
   }) {
     return TextStamp(
       pageIndex: pageIndex ?? this.pageIndex,
@@ -90,6 +95,7 @@ class TextStamp extends PdfStamp {
       rotationDeg: rotationDeg ?? this.rotationDeg,
       text: text ?? this.text,
       fontSizePt: fontSizePt ?? this.fontSizePt,
+      color: color ?? this.color,
     );
   }
 }

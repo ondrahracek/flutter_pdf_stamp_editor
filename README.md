@@ -6,7 +6,7 @@ A Flutter package for viewing PDFs with stamp overlays and exporting stamped PDF
 
 - 📄 **PDF Viewing**: Display PDFs using the powerful `pdfrx` viewer
 - 🖼️ **Stamp Placement**: Place and position image or text stamps on PDF pages
-- ✏️ **Interactive Editing**: Drag, resize, rotate, and select stamps with gestures
+- ✏️ **Interactive Editing**: Drag, resize, rotate, and select stamps with gestures (including cross-page dragging)
 - 💾 **PDF Export**: Export stamped PDFs with vector-based stamping (mobile only)
 - 🎮 **Programmatic Control**: Full API for adding, updating, and managing stamps
 - 🌐 **Web Support**: View and place stamps on web (export disabled)
@@ -26,7 +26,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  pdf_stamp_editor: ^0.2.0
+  pdf_stamp_editor: ^0.3.0
 ```
 
 ### Quick Start
@@ -153,7 +153,7 @@ PdfStampEditorPage(
 
 **Gestures:**
 
-- **Drag**: Tap and hold a stamp, then drag to move it (requires `enableDrag: true` and a `controller`)
+- **Drag**: Tap and hold a stamp, then drag to move it (requires `enableDrag: true` and a `controller`). Stamps can be dragged seamlessly across different PDF pages.
 - **Resize**: Pinch to zoom on a stamp to resize it
 - **Rotate**: Use rotation gesture (two fingers) on a stamp to rotate it
 - **Select**: Tap a stamp to select it (shows border with configurable color and width)

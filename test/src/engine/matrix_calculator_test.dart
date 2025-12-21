@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf_stamp_editor/src/engine/matrix_calculator.dart';
 import 'package:pdf_stamp_editor/src/model/pdf_stamp.dart';
@@ -163,6 +164,7 @@ void main() {
           rotationDeg: 30, // 30 degrees
           text: 'Test',
           fontSizePt: 12,
+          color: Colors.red,
         );
 
         final matrix = MatrixCalculator.calculateMatrix(stamp);

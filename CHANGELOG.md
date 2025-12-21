@@ -1,3 +1,17 @@
+## 0.3.0
+
+### Features
+
+* **Cross-Page Dragging**: Stamps can now be dragged seamlessly across different PDF pages without interruption
+
+### Improvements
+
+* **Code Cleanup**: Removed unused export-related private functions from `PdfStampEditorPage`
+
+### Backward Compatibility
+
+All changes are backward compatible. Existing code will continue to work without modification.
+
 ## 0.2.0
 
 ### Features

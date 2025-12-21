@@ -8,9 +8,13 @@ class PdfStampEditorController extends ChangeNotifier {
 
   final List<PdfStamp> _stamps;
   final Set<int> _selectedIndices = <int>{};
+  int? _draggingStampIndex;
+  int? _dragStartPageIndex;
 
   List<PdfStamp> get stamps => List.unmodifiable(_stamps);
   Set<int> get selectedIndices => Set.unmodifiable(_selectedIndices);
+  int? get draggingStampIndex => _draggingStampIndex;
+  int? get dragStartPageIndex => _dragStartPageIndex;
 
   bool isSelected(int index) => _selectedIndices.contains(index);
 
@@ -54,6 +58,12 @@ class PdfStampEditorController extends ChangeNotifier {
 
   void clearStamps() {
     _stamps.clear();
+    notifyListeners();
+  }
+
+  void setDraggingStamp(int? index, {int? dragStartPageIndex}) {
+    _draggingStampIndex = index;
+    _dragStartPageIndex = dragStartPageIndex;
     notifyListeners();
   }
 }

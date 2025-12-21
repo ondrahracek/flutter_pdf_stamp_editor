@@ -75,6 +75,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       controller.addStamp(stamp);
       final page = MockPdfPage();
@@ -119,6 +120,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       controller.addStamp(initialStamp);
       final page = MockPdfPage();
@@ -176,6 +178,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       controller.addStamp(initialStamp);
       final page = MockPdfPage();
@@ -233,7 +236,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test',
         fontSizePt: 12.0,
-      );
+      color: Colors.red,);
       controller.addStamp(initialStamp);
       final page = MockPdfPage(
         rotation: PdfPageRotation.clockwise90,
@@ -299,7 +302,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test',
         fontSizePt: 12.0,
-      );
+      color: Colors.red,);
       controller.addStamp(initialStamp);
       final page = MockPdfPage();
 
@@ -365,6 +368,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Page0',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       final stampPage1 = TextStamp(
         pageIndex: 1,
@@ -373,6 +377,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Page1',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       controller.addStamp(stampPage0);
       controller.addStamp(stampPage1);
@@ -444,6 +449,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Stamp1',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       final stamp2 = TextStamp(
         pageIndex: 0,
@@ -452,6 +458,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Stamp2',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       controller.addStamp(stamp1);
       controller.addStamp(stamp2);
@@ -524,6 +531,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       controller.addStamp(initialStamp);
       final page = MockPdfPage();
@@ -3338,6 +3346,325 @@ void main() {
 
       await gesture1.up();
       await gesture2.up();
+      await tester.pump();
+    });
+
+    testWidgets('updates pageIndex when stamp is dragged to another page',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = TextStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        text: 'Test',
+        fontSizePt: 12.0,
+        color: Colors.red,
+      );
+      controller.addStamp(stamp);
+      final page0 = MockPdfPage(pageNumber: 1);
+      final page1 = MockPdfPage(pageNumber: 2);
+
+      // Simulate two pages stacked vertically
+      // Page 0: y = 0 to 792
+      // Page 1: y = 792 to 1584
+      final page0Rect = Rect.fromLTWH(0, 0, 612, 792);
+      final page1Rect = Rect.fromLTWH(0, 792, 612, 792);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 1584,
+              child: Stack(
+                children: [
+                  DraggableStampWidget(
+                    stamp: controller.stamps[0],
+                    stampIndex: 0,
+                    page: page0,
+                    scaledPageSizePx: const Size(612, 792),
+                    controller: controller,
+                    pageRects: {
+                      0: page0Rect,
+                      1: page1Rect,
+                    },
+                    pages: {
+                      0: page0,
+                      1: page1,
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Get initial position on page 0
+      final initialPos = PdfCoordinateConverter.pdfPointToViewerOffset(
+        page: page0,
+        xPt: 306.0,
+        yPt: 396.0,
+        scaledPageSizePx: const Size(612, 792),
+      );
+
+      // Drag to position on page 1 (below page 0)
+      final gesture = await tester.startGesture(initialPos);
+      await tester.pump();
+      // Move to page 1 - y position should be in page 1's rect
+      await gesture.moveBy(const Offset(0, 850));
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+
+      // Verify pageIndex was updated to page 1
+      final updatedStamp = controller.stamps[0];
+      expect(updatedStamp.pageIndex, 1);
+    });
+
+    testWidgets('correctly calculates global coordinates when page rect is offset',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = TextStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        text: 'Test',
+        fontSizePt: 12.0,
+        color: Colors.red,
+      );
+      controller.addStamp(stamp);
+      final page0 = MockPdfPage(pageNumber: 1);
+      final page1 = MockPdfPage(pageNumber: 2);
+
+      // Simulate pages with non-zero offsets (like in a scrolled viewer)
+      // Page 0: y = 100 to 892 (offset by 100)
+      // Page 1: y = 892 to 1684
+      final page0Rect = Rect.fromLTWH(0, 100, 612, 792);
+      final page1Rect = Rect.fromLTWH(0, 892, 612, 792);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 1684,
+              child: Stack(
+                children: [
+                  DraggableStampWidget(
+                    stamp: controller.stamps[0],
+                    stampIndex: 0,
+                    page: page0,
+                    scaledPageSizePx: const Size(612, 792),
+                    controller: controller,
+                    pageRects: {
+                      0: page0Rect,
+                      1: page1Rect,
+                    },
+                    pages: {
+                      0: page0,
+                      1: page1,
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Get initial position relative to page overlay, then add page rect offset for global position
+      // In the real implementation, the widget is inside a page overlay at pageRect.topLeft
+      // So posPx is relative to the overlay, and we add pageRect.topLeft to get global
+      final posPx = PdfCoordinateConverter.pdfPointToViewerOffset(
+        page: page0,
+        xPt: 306.0,
+        yPt: 396.0,
+        scaledPageSizePx: const Size(612, 792),
+      );
+      // In test, widget is directly in Stack, so we need to account for page rect offset
+      final initialPos = page0Rect.topLeft + posPx;
+
+      // Drag down to move to page 1
+      // initialPos is relative to page overlay, so it's at (306, 396) relative to page0Rect.topLeft
+      // Global position would be (306, 396 + 100) = (306, 496)
+      // To get to page 1, we need to drag to y > 892
+      // So we need to drag by at least 892 - 496 = 396 pixels
+      final gesture = await tester.startGesture(initialPos);
+      await tester.pump();
+      await gesture.moveBy(const Offset(0, 500));
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+
+      // Verify pageIndex was updated to page 1
+      final updatedStamp = controller.stamps[0];
+      expect(updatedStamp.pageIndex, 1, reason: 'Stamp should move to page 1 when dragged past page boundary');
+    });
+
+    testWidgets('stamp remains visible and draggable when pageIndex changes during drag',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = TextStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        text: 'Test',
+        fontSizePt: 12.0,
+        color: Colors.red,
+      );
+      controller.addStamp(stamp);
+      final page0 = MockPdfPage(pageNumber: 1);
+      final page1 = MockPdfPage(pageNumber: 2);
+
+      final page0Rect = Rect.fromLTWH(0, 0, 612, 792);
+      final page1Rect = Rect.fromLTWH(0, 792, 612, 792);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 1584,
+              child: Stack(
+                children: [
+                  DraggableStampWidget(
+                    stamp: controller.stamps[0],
+                    stampIndex: 0,
+                    page: page0,
+                    scaledPageSizePx: const Size(612, 792),
+                    controller: controller,
+                    pageRects: {
+                      0: page0Rect,
+                      1: page1Rect,
+                    },
+                    pages: {
+                      0: page0,
+                      1: page1,
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final initialPos = PdfCoordinateConverter.pdfPointToViewerOffset(
+        page: page0,
+        xPt: 306.0,
+        yPt: 396.0,
+        scaledPageSizePx: const Size(612, 792),
+      );
+
+      // Start drag
+      final gesture = await tester.startGesture(initialPos);
+      await tester.pump();
+      
+      // Move to page 1 boundary - this should trigger pageIndex change
+      await gesture.moveBy(const Offset(0, 400));
+      await tester.pump();
+      
+      // Verify dragging state is set
+      expect(controller.draggingStampIndex, 0, reason: 'Controller should track dragging stamp');
+      
+      // Continue dragging on page 1
+      await gesture.moveBy(const Offset(0, 100));
+      await tester.pump();
+      
+      // Verify stamp position continues to update even after pageIndex changed
+      final updatedStamp = controller.stamps[0];
+      expect(updatedStamp.pageIndex, 1, reason: 'Stamp should be on page 1');
+      expect(updatedStamp.centerYPt, greaterThan(396.0), reason: 'Stamp position should continue updating during drag');
+      
+      await gesture.up();
+      await tester.pump();
+      
+      // Verify dragging state is cleared
+      expect(controller.draggingStampIndex, isNull, reason: 'Dragging state should be cleared after drag ends');
+    });
+
+    testWidgets('uses correct page for coordinate conversion after page change during drag',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = TextStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        text: 'Test',
+        fontSizePt: 12.0,
+        color: Colors.red,
+      );
+      controller.addStamp(stamp);
+      final page0 = MockPdfPage(pageNumber: 1);
+      final page1 = MockPdfPage(pageNumber: 2);
+
+      final page0Rect = Rect.fromLTWH(0, 0, 612, 792);
+      final page1Rect = Rect.fromLTWH(0, 792, 612, 792);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 1584,
+              child: Stack(
+                children: [
+                  DraggableStampWidget(
+                    stamp: controller.stamps[0],
+                    stampIndex: 0,
+                    page: page0,
+                    scaledPageSizePx: const Size(612, 792),
+                    controller: controller,
+                    pageRects: {
+                      0: page0Rect,
+                      1: page1Rect,
+                    },
+                    pages: {
+                      0: page0,
+                      1: page1,
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final initialPos = PdfCoordinateConverter.pdfPointToViewerOffset(
+        page: page0,
+        xPt: 306.0,
+        yPt: 396.0,
+        scaledPageSizePx: const Size(612, 792),
+      );
+
+      // Start drag
+      final gesture = await tester.startGesture(initialPos);
+      await tester.pump();
+      
+      // Move to page 1 - this should trigger pageIndex change
+      await gesture.moveBy(const Offset(0, 400));
+      await tester.pump();
+      
+      // Verify pageIndex was updated
+      expect(controller.stamps[0].pageIndex, 1, reason: 'Stamp should be on page 1');
+      
+      // Continue dragging on page 1 - coordinates should be positive (not negative)
+      await gesture.moveBy(const Offset(0, 50));
+      await tester.pump();
+      
+      // Verify coordinates are valid (positive Y on page 1)
+      final updatedStamp = controller.stamps[0];
+      expect(updatedStamp.pageIndex, 1, reason: 'Stamp should still be on page 1');
+      expect(updatedStamp.centerYPt, greaterThan(0), reason: 'Y coordinate should be positive after moving on page 1');
+      expect(updatedStamp.centerYPt, lessThan(792), reason: 'Y coordinate should be within page 1 bounds');
+      
+      await gesture.up();
       await tester.pump();
     });
   });

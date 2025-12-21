@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf_stamp_editor/src/model/pdf_stamp.dart';
 
@@ -96,6 +97,7 @@ void main() {
           rotationDeg: 30.0,
           text: 'Hello World',
           fontSizePt: 12.0,
+          color: Colors.red,
         );
 
         expect(stamp.pageIndex, 1);
@@ -115,6 +117,7 @@ void main() {
           rotationDeg: 0,
           text: '',
           fontSizePt: 12,
+          color: Colors.red,
         );
 
         expect(stamp.text, '');
@@ -128,6 +131,7 @@ void main() {
           rotationDeg: 0,
           text: 'Test',
           fontSizePt: 0,
+          color: Colors.red,
         );
 
         expect(stamp.fontSizePt, 0);
@@ -141,9 +145,24 @@ void main() {
           rotationDeg: -45.0,
           text: 'Test',
           fontSizePt: 12,
+          color: Colors.red,
         );
 
         expect(stamp.rotationDeg, -45.0);
+      });
+
+      test('creates text stamp with color property', () {
+        final stamp = TextStamp(
+          pageIndex: 0,
+          centerXPt: 0,
+          centerYPt: 0,
+          rotationDeg: 0,
+          text: 'Test',
+          fontSizePt: 12,
+          color: Colors.blue,
+        );
+
+        expect(stamp.color, Colors.blue);
       });
     });
 
@@ -170,6 +189,7 @@ void main() {
           rotationDeg: 0,
           text: 'Test',
           fontSizePt: 12,
+          color: Colors.red,
         );
 
         expect(stamp, isA<PdfStamp>());

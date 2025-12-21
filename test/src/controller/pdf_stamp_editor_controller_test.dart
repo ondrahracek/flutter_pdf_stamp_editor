@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf_stamp_editor/src/controller/pdf_stamp_editor_controller.dart';
 import 'package:pdf_stamp_editor/src/model/pdf_stamp.dart';
@@ -21,6 +22,7 @@ void main() {
           rotationDeg: 0.0,
           text: 'Test',
           fontSizePt: 12.0,
+          color: Colors.red,
         ),
       ];
       final controller = PdfStampEditorController(initialStamps: initialStamps);
@@ -58,6 +60,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
 
       controller.addStamp(textStamp);
@@ -147,6 +150,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test1',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       final stamp2 = TextStamp(
         pageIndex: 0,
@@ -155,6 +159,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test2',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       final controller =
           PdfStampEditorController(initialStamps: [stamp1, stamp2]);
@@ -175,6 +180,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test1',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       final stamp2 = ImageStamp(
         pageIndex: 0,
@@ -209,6 +215,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       controller.addStamp(stamp);
 
@@ -248,6 +255,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       final controller = PdfStampEditorController(initialStamps: [stamp]);
       var listenerCalled = false;
@@ -269,6 +277,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Test',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
       final controller = PdfStampEditorController(initialStamps: [stamp]);
       var listenerCalled = false;

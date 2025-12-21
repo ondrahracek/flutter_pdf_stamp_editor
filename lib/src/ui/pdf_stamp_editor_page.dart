@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -147,6 +148,8 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
   int _previousStampCount = 0;
   List<int> _previousSelectedIndices = [];
   final Map<int, Size> _imageDimensionCache = {};
+  final Map<int, Rect> _pageRects = {};
+  final Map<int, PdfPage> _pages = {};
 
   List<PdfStamp> get stamps =>
       widget.controller?.stamps ?? List.unmodifiable(_stamps);
@@ -308,6 +311,16 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                   sourceName: widget.webSourceName,
                   params: PdfViewerParams(
                     pageOverlaysBuilder: (context, pageRect, page) {
+                      final pageIndex = page.pageNumber - 1;
+                      _pageRects[pageIndex] = pageRect;
+                      _pages[pageIndex] = page;
+                      if (mounted) {
+                        SchedulerBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
+                      }
                       return [
                         Positioned(
                           left: 0,
@@ -328,6 +341,8 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                             stampBuilder: widget.stampBuilder,
                             textStampConfig: widget.textStampConfig,
                             selectionConfig: widget.selectionConfig,
+                            pageRects: _pageRects,
+                            pages: _pages,
                             onTapDown: (offset) {
                               final png = widget.pngBytes;
                               if (png == null) {
@@ -387,6 +402,7 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                                   rotationDeg: widget.stampRotationDeg,
                                   text: config.text!,
                                   fontSizePt: config.fontSizePt,
+                                  color: config.color,
                                 ),
                               );
                               widget.onLongPressDown?.call();
@@ -410,6 +426,16 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                 _tempPdfFile!.path,
                 params: PdfViewerParams(
                   pageOverlaysBuilder: (context, pageRect, page) {
+                    final pageIndex = page.pageNumber - 1;
+                    _pageRects[pageIndex] = pageRect;
+                    _pages[pageIndex] = page;
+                    if (mounted) {
+                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      });
+                    }
                     return [
                       Positioned(
                         left: 0,
@@ -430,6 +456,8 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                           stampBuilder: widget.stampBuilder,
                           textStampConfig: widget.textStampConfig,
                           selectionConfig: widget.selectionConfig,
+                          pageRects: _pageRects,
+                          pages: _pages,
                           onTapDown: (offset) {
                             final png = widget.pngBytes;
                             if (png == null) {
@@ -489,6 +517,7 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
                                 rotationDeg: widget.stampRotationDeg,
                                 text: config.text!,
                                 fontSizePt: config.fontSizePt,
+                                color: config.color,
                               ),
                             );
                             widget.onLongPressDown?.call();
@@ -525,6 +554,8 @@ class _PageOverlay extends StatelessWidget {
     required this.onLongPressDown,
     required this.textStampConfig,
     required this.selectionConfig,
+    this.pageRects,
+    this.pages,
   });
 
   final PdfPage page;
@@ -543,14 +574,30 @@ class _PageOverlay extends StatelessWidget {
   final void Function(Offset localOffsetTopLeft) onLongPressDown;
   final TextStampConfig textStampConfig;
   final SelectionConfig selectionConfig;
+  final Map<int, Rect>? pageRects;
+  final Map<int, PdfPage>? pages;
 
   @override
   Widget build(BuildContext context) {
     final pageStamps = <PdfStamp>[];
     final pageStampIndices = <int>[];
+    final currentPageIndex = page.pageNumber - 1;
     for (var i = 0; i < stamps.length; i++) {
-      if (stamps[i].pageIndex == page.pageNumber - 1) {
-        pageStamps.add(stamps[i]);
+      final stamp = stamps[i];
+
+      bool shouldShow = false;
+      if (controller?.draggingStampIndex == i) {
+        // If this stamp is being dragged, show it on BOTH the page where the drag
+        // started (to keep gesture handler alive) AND the current page (to show preview).
+        shouldShow = controller?.dragStartPageIndex == currentPageIndex ||
+            stamp.pageIndex == currentPageIndex;
+      } else {
+        // Otherwise, show it on its assigned page.
+        shouldShow = stamp.pageIndex == currentPageIndex;
+      }
+
+      if (shouldShow) {
+        pageStamps.add(stamp);
         pageStampIndices.add(i);
       }
     }
@@ -608,12 +655,23 @@ class _PageOverlay extends StatelessWidget {
       },
       onLongPressStart: (d) => onLongPressDown(d.localPosition),
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           for (var i = 0; i < pageStamps.length; i++)
-            enableDrag && controller != null
-                ? DraggableStampWidget(
-                    stamp: pageStamps[i],
-                    stampIndex: pageStampIndices[i],
+            () {
+              final stampIndex = pageStampIndices[i];
+              final stamp = pageStamps[i];
+              final isDragging = controller?.draggingStampIndex == stampIndex;
+              final isStartPage =
+                  controller?.dragStartPageIndex == currentPageIndex;
+
+              if (enableDrag && controller != null && isDragging) {
+                if (isStartPage) {
+                  // This is the gesture handler. Keep it alive but hide it if
+                  // the stamp has moved to another page visually.
+                  return DraggableStampWidget(
+                    stamp: stamp,
+                    stampIndex: stampIndex,
                     page: page,
                     scaledPageSizePx: scaledPageSizePx,
                     controller: controller!,
@@ -623,15 +681,49 @@ class _PageOverlay extends StatelessWidget {
                     enableRotate: enableRotate,
                     enableSelection: enableSelection,
                     selectionConfig: selectionConfig,
-                  )
-                : _buildStampWidget(
+                    pageRects: pageRects,
+                    pages: pages,
+                    isVisible: stamp.pageIndex == currentPageIndex,
+                  );
+                } else {
+                  // On other pages, show a non-interactive preview.
+                  return _buildStampWidget(
                     context: context,
-                    stamp: pageStamps[i],
+                    stamp: stamp,
                     page: page,
                     scaledPageSizePx: scaledPageSizePx,
                     stampBuilder: stampBuilder,
                     textStampConfig: textStampConfig,
-                  ),
+                  );
+                }
+              }
+
+              // Normal (non-dragging) interactive widget or static widget
+              return enableDrag && controller != null
+                  ? DraggableStampWidget(
+                      stamp: stamp,
+                      stampIndex: stampIndex,
+                      page: page,
+                      scaledPageSizePx: scaledPageSizePx,
+                      controller: controller!,
+                      onStampSelected: onStampSelected,
+                      onStampUpdated: onStampUpdated,
+                      enableResize: enableResize,
+                      enableRotate: enableRotate,
+                      enableSelection: enableSelection,
+                      selectionConfig: selectionConfig,
+                      pageRects: pageRects,
+                      pages: pages,
+                    )
+                  : _buildStampWidget(
+                      context: context,
+                      stamp: stamp,
+                      page: page,
+                      scaledPageSizePx: scaledPageSizePx,
+                      stampBuilder: stampBuilder,
+                      textStampConfig: textStampConfig,
+                    );
+            }(),
         ],
       ),
     );
@@ -696,7 +788,7 @@ class _PageOverlay extends StatelessWidget {
             style: TextStyle(
               fontSize: fontPx,
               fontWeight: textStampConfig.fontWeight,
-              color: textStampConfig.color,
+              color: s.color,
             ),
           ),
         ),

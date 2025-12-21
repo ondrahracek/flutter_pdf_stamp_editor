@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf_stamp_editor/src/model/pdf_stamp.dart';
 
@@ -59,6 +60,7 @@ void main() {
         rotationDeg: 0.0,
         text: 'Original',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
 
       final updated = original.copyWith(
@@ -83,6 +85,7 @@ void main() {
         rotationDeg: 90.0,
         text: 'Original',
         fontSizePt: 12.0,
+        color: Colors.red,
       );
 
       final updated = original.copyWith(text: 'Updated');

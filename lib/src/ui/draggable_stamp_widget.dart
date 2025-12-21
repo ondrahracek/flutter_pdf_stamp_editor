@@ -28,6 +28,9 @@ class DraggableStampWidget extends StatefulWidget {
     this.maxHeightPt,
     this.rotationSnapDegrees,
     this.selectionConfig,
+    this.pageRects,
+    this.pages,
+    this.isVisible = true,
   });
 
   final PdfStamp stamp;
@@ -46,6 +49,9 @@ class DraggableStampWidget extends StatefulWidget {
   final double? maxHeightPt;
   final double? rotationSnapDegrees;
   final SelectionConfig? selectionConfig;
+  final Map<int, Rect>? pageRects;
+  final Map<int, PdfPage>? pages;
+  final bool isVisible;
 
   @override
   State<DraggableStampWidget> createState() => _DraggableStampWidgetState();
@@ -53,21 +59,35 @@ class DraggableStampWidget extends StatefulWidget {
 
 class _DraggableStampWidgetState extends State<DraggableStampWidget> {
   Offset? _initialLocalPos;
-  Offset? _initialPageCenterPos;
+  Offset? _initialGlobalPos;
   PdfStamp? _originalStamp;
   double? _initialWidthPt;
   double? _initialHeightPt;
   double? _initialRotationDeg;
+  int? _currentPageIndex;
   bool _hasMoved = false;
 
+  /// Determines which page index a global coordinate belongs to by checking
+  /// which page rect contains the coordinate.
+  int? _getPageIndexFromGlobalCoordinate(Offset globalCoordinate) {
+    if (widget.pageRects == null) return null;
+    for (final entry in widget.pageRects!.entries) {
+      if (entry.value.contains(globalCoordinate)) {
+        return entry.key;
+      }
+    }
+    return null;
+  }
+
   void _cancelDrag() {
+    widget.controller.setDraggingStamp(null);
     final originalStamp = _originalStamp;
     _initialLocalPos = null;
-    _initialPageCenterPos = null;
     _originalStamp = null;
     _initialWidthPt = null;
     _initialHeightPt = null;
     _initialRotationDeg = null;
+    _currentPageIndex = null;
     _hasMoved = false;
     if (originalStamp != null) {
       widget.controller.updateStamp(widget.stampIndex, originalStamp);
@@ -109,127 +129,177 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
         top: posPx.dy - hPx / 2,
         width: wPx,
         height: hPx,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            if (!_hasMoved && widget.enableSelection) {
-              widget.controller.selectStamp(widget.stampIndex);
-              widget.onStampSelected?.call(widget.stampIndex, widget.stamp);
-            }
-            _hasMoved = false;
-          },
-          onScaleStart: (details) {
-            _hasMoved = false;
-            if (details.pointerCount > 1) {
-              _initialWidthPt = s.widthPt;
-              _initialHeightPt = s.heightPt;
-              _initialRotationDeg = s.rotationDeg;
-            } else {
-              _initialLocalPos = details.localFocalPoint;
-              _initialPageCenterPos = posPx;
-              _originalStamp = s.copyWith();
-            }
-          },
-          onScaleUpdate: (details) {
-            _hasMoved = true;
-            if (details.pointerCount > 1) {
-              if (widget.enableRotate && _initialRotationDeg != null && details.rotation.abs() > 0.01) {
-                var newRotationDeg = _initialRotationDeg! + details.rotation * 180 / math.pi;
-                newRotationDeg = newRotationDeg % 360;
-                if (newRotationDeg < 0) newRotationDeg += 360;
-
-                if (widget.rotationSnapDegrees != null) {
-                  newRotationDeg = (newRotationDeg / widget.rotationSnapDegrees!).round() * widget.rotationSnapDegrees!;
-                }
-
-                final updatedStamp = s.copyWith(
-                  rotationDeg: newRotationDeg,
-                );
-
-                widget.controller.updateStamp(widget.stampIndex, updatedStamp);
-                widget.onStampUpdated?.call(widget.stampIndex, updatedStamp);
-              } else if (widget.enableResize && _initialWidthPt != null && _initialHeightPt != null) {
-                var newWidthPt = _initialWidthPt! * details.scale;
-                var newHeightPt = _initialHeightPt! * details.scale;
-
-                if (widget.minWidthPt != null) {
-                  newWidthPt = math.max(newWidthPt, widget.minWidthPt!);
-                }
-                if (widget.minHeightPt != null) {
-                  newHeightPt = math.max(newHeightPt, widget.minHeightPt!);
-                }
-                if (widget.maxWidthPt != null) {
-                  newWidthPt = math.min(newWidthPt, widget.maxWidthPt!);
-                }
-                if (widget.maxHeightPt != null) {
-                  newHeightPt = math.min(newHeightPt, widget.maxHeightPt!);
-                }
-
-                final updatedStamp = s.copyWith(
-                  widthPt: newWidthPt,
-                  heightPt: newHeightPt,
-                );
-
-                widget.controller.updateStamp(widget.stampIndex, updatedStamp);
-                widget.onStampUpdated?.call(widget.stampIndex, updatedStamp);
+        child: Opacity(
+          opacity: widget.isVisible ? 1.0 : 0.0,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (!_hasMoved && widget.enableSelection) {
+                widget.controller.selectStamp(widget.stampIndex);
+                widget.onStampSelected?.call(widget.stampIndex, widget.stamp);
               }
-            } else {
-              if (_initialLocalPos == null || _initialPageCenterPos == null) return;
+              _hasMoved = false;
+            },
+            onScaleStart: (details) {
+              _hasMoved = false;
+              if (details.pointerCount > 1) {
+                _initialWidthPt = s.widthPt;
+                _initialHeightPt = s.heightPt;
+                _initialRotationDeg = s.rotationDeg;
+              } else {
+                widget.controller.setDraggingStamp(widget.stampIndex,
+                    dragStartPageIndex: widget.stamp.pageIndex);
+                _initialLocalPos = details.localFocalPoint;
+                _originalStamp = s.copyWith();
+                _currentPageIndex = widget.stamp.pageIndex;
+                if (widget.pageRects != null) {
+                  final currentPageRect =
+                      widget.pageRects![widget.stamp.pageIndex];
+                  if (currentPageRect != null) {
+                    _initialGlobalPos = currentPageRect.topLeft + posPx;
+                  }
+                }
+              }
+            },
+            onScaleUpdate: (details) {
+              _hasMoved = true;
+              if (details.pointerCount > 1) {
+                if (widget.enableRotate &&
+                    _initialRotationDeg != null &&
+                    details.rotation.abs() > 0.01) {
+                  var newRotationDeg =
+                      _initialRotationDeg! + details.rotation * 180 / math.pi;
+                  newRotationDeg = newRotationDeg % 360;
+                  if (newRotationDeg < 0) newRotationDeg += 360;
 
-              final currentLocalPos = details.localFocalPoint;
-              final deltaLocal = currentLocalPos - _initialLocalPos!;
+                  if (widget.rotationSnapDegrees != null) {
+                    newRotationDeg =
+                        (newRotationDeg / widget.rotationSnapDegrees!).round() *
+                            widget.rotationSnapDegrees!;
+                  }
 
-              final newPagePos = _initialPageCenterPos! + deltaLocal;
-              final newPdfPoint = PdfCoordinateConverter.viewerOffsetToPdfPoint(
-                page: widget.page,
-                localOffsetTopLeft: newPagePos,
-                scaledPageSizePx: widget.scaledPageSizePx,
-              );
+                  final updatedStamp = s.copyWith(
+                    rotationDeg: newRotationDeg,
+                  );
 
-              final updatedStamp = s.copyWith(
-                centerXPt: newPdfPoint.x,
-                centerYPt: newPdfPoint.y,
-              );
+                  widget.controller
+                      .updateStamp(widget.stampIndex, updatedStamp);
+                  widget.onStampUpdated?.call(widget.stampIndex, updatedStamp);
+                } else if (widget.enableResize &&
+                    _initialWidthPt != null &&
+                    _initialHeightPt != null) {
+                  var newWidthPt = _initialWidthPt! * details.scale;
+                  var newHeightPt = _initialHeightPt! * details.scale;
 
-              widget.controller.updateStamp(widget.stampIndex, updatedStamp);
-              widget.onStampUpdated?.call(widget.stampIndex, updatedStamp);
-            }
-          },
-          onScaleEnd: (_) {
-            _initialWidthPt = null;
-            _initialHeightPt = null;
-            _initialRotationDeg = null;
-            _initialLocalPos = null;
-            _initialPageCenterPos = null;
-            _originalStamp = null;
-            _hasMoved = false;
-          },
-          child: ListenableBuilder(
-            listenable: widget.controller,
-            builder: (context, _) {
-              final isSelected = widget.controller.isSelected(widget.stampIndex);
-              final content = Transform.rotate(
-                angle: s.rotationDeg * math.pi / 180,
-                child: Image.memory(s.pngBytes, fit: BoxFit.fill),
-              );
+                  if (widget.minWidthPt != null) {
+                    newWidthPt = math.max(newWidthPt, widget.minWidthPt!);
+                  }
+                  if (widget.minHeightPt != null) {
+                    newHeightPt = math.max(newHeightPt, widget.minHeightPt!);
+                  }
+                  if (widget.maxWidthPt != null) {
+                    newWidthPt = math.min(newWidthPt, widget.maxWidthPt!);
+                  }
+                  if (widget.maxHeightPt != null) {
+                    newHeightPt = math.min(newHeightPt, widget.maxHeightPt!);
+                  }
 
-              if (isSelected) {
-                final config = widget.selectionConfig ?? const SelectionConfig();
-                return Container(
-                  decoration: BoxDecoration(
-                    border: Border.fromBorderSide(
-                      BorderSide(
-                        color: config.borderColor,
-                        width: config.borderWidth,
+                  final updatedStamp = s.copyWith(
+                    widthPt: newWidthPt,
+                    heightPt: newHeightPt,
+                  );
+
+                  widget.controller
+                      .updateStamp(widget.stampIndex, updatedStamp);
+                  widget.onStampUpdated?.call(widget.stampIndex, updatedStamp);
+                }
+              } else {
+                if (_initialLocalPos == null || _initialGlobalPos == null)
+                  return;
+
+                final currentLocalPos = details.localFocalPoint;
+                final deltaLocal = currentLocalPos - _initialLocalPos!;
+
+                // Calculate global position using the initial global position as anchor
+                final currentGlobalPos = _initialGlobalPos! + deltaLocal;
+
+                // Detect which page we're on
+                final detectedPageIndex = widget.pageRects != null
+                    ? _getPageIndexFromGlobalCoordinate(currentGlobalPos)
+                    : null;
+
+                if (detectedPageIndex != null && widget.pages != null) {
+                  // Update current page index if it changed
+                  if (detectedPageIndex != _currentPageIndex) {
+                    _currentPageIndex = detectedPageIndex;
+                  }
+
+                  final targetPage = widget.pages![_currentPageIndex]!;
+                  final targetPageRect = widget.pageRects![_currentPageIndex]!;
+
+                  // Convert global position to local position on the target page
+                  final localPosOnPage =
+                      currentGlobalPos - targetPageRect.topLeft;
+
+                  // Convert local pixels to PDF points
+                  final newPdfPoint =
+                      PdfCoordinateConverter.viewerOffsetToPdfPoint(
+                    page: targetPage,
+                    localOffsetTopLeft: localPosOnPage,
+                    scaledPageSizePx: targetPageRect.size,
+                  );
+
+                  final updatedStamp = s.copyWith(
+                    pageIndex: _currentPageIndex,
+                    centerXPt: newPdfPoint.x,
+                    centerYPt: newPdfPoint.y,
+                  );
+
+                  widget.controller
+                      .updateStamp(widget.stampIndex, updatedStamp);
+                  widget.onStampUpdated?.call(widget.stampIndex, updatedStamp);
+                }
+              }
+            },
+            onScaleEnd: (_) {
+              widget.controller.setDraggingStamp(null);
+              _initialWidthPt = null;
+              _initialHeightPt = null;
+              _initialRotationDeg = null;
+              _initialLocalPos = null;
+              _originalStamp = null;
+              _currentPageIndex = null;
+              _hasMoved = false;
+            },
+            child: ListenableBuilder(
+              listenable: widget.controller,
+              builder: (context, _) {
+                final isSelected =
+                    widget.controller.isSelected(widget.stampIndex);
+                final content = Transform.rotate(
+                  angle: s.rotationDeg * math.pi / 180,
+                  child: Image.memory(s.pngBytes, fit: BoxFit.fill),
+                );
+
+                if (isSelected) {
+                  final config =
+                      widget.selectionConfig ?? const SelectionConfig();
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.fromBorderSide(
+                        BorderSide(
+                          color: config.borderColor,
+                          width: config.borderWidth,
+                        ),
                       ),
                     ),
-                  ),
-                  child: content,
-                );
-              }
+                    child: content,
+                  );
+                }
 
-              return content;
-            },
+                return content;
+              },
+            ),
           ),
         ),
       );
@@ -243,80 +313,126 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
       positionedChild = Positioned(
         left: posPx.dx,
         top: posPx.dy,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onPanStart: (details) {
-            _hasMoved = false;
-            _initialLocalPos = details.localPosition;
-            _initialPageCenterPos = posPx;
-            _originalStamp = s.copyWith();
-          },
-          onPanUpdate: (details) {
-            _hasMoved = true;
-            if (_initialLocalPos == null || _initialPageCenterPos == null) return;
+        child: Opacity(
+          opacity: widget.isVisible ? 1.0 : 0.0,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (!_hasMoved && widget.enableSelection) {
+                widget.controller.selectStamp(widget.stampIndex);
+                widget.onStampSelected?.call(widget.stampIndex, widget.stamp);
+              }
+              _hasMoved = false;
+            },
+            onPanStart: (details) {
+              _hasMoved = false;
+              widget.controller.setDraggingStamp(widget.stampIndex,
+                  dragStartPageIndex: widget.stamp.pageIndex);
+              _initialLocalPos = details.localPosition;
+              _originalStamp = s.copyWith();
+              _currentPageIndex = widget.stamp.pageIndex;
+              if (widget.pageRects != null) {
+                final currentPageRect =
+                    widget.pageRects![widget.stamp.pageIndex];
+                if (currentPageRect != null) {
+                  _initialGlobalPos = currentPageRect.topLeft + posPx;
+                }
+              }
+            },
+            onPanUpdate: (details) {
+              _hasMoved = true;
+              if (_initialLocalPos == null || _initialGlobalPos == null) return;
 
-            final currentLocalPos = details.localPosition;
-            final deltaLocal = currentLocalPos - _initialLocalPos!;
+              final currentLocalPos = details.localPosition;
+              final deltaLocal = currentLocalPos - _initialLocalPos!;
 
-            final newPagePos = _initialPageCenterPos! + deltaLocal;
-            final newPdfPoint = PdfCoordinateConverter.viewerOffsetToPdfPoint(
-              page: widget.page,
-              localOffsetTopLeft: newPagePos,
-              scaledPageSizePx: widget.scaledPageSizePx,
-            );
+              // Calculate global position using the initial global position as anchor
+              final currentGlobalPos = _initialGlobalPos! + deltaLocal;
 
-            final updatedStamp = s.copyWith(
-              centerXPt: newPdfPoint.x,
-              centerYPt: newPdfPoint.y,
-            );
+              // Detect which page we're on
+              final detectedPageIndex = widget.pageRects != null
+                  ? _getPageIndexFromGlobalCoordinate(currentGlobalPos)
+                  : null;
 
-            widget.controller.updateStamp(widget.stampIndex, updatedStamp);
-            widget.onStampUpdated?.call(widget.stampIndex, updatedStamp);
-          },
-          onPanEnd: (_) {
-            if (!_hasMoved && widget.enableSelection) {
-              widget.controller.selectStamp(widget.stampIndex);
-              widget.onStampSelected?.call(widget.stampIndex, widget.stamp);
-            }
-            _initialLocalPos = null;
-            _initialPageCenterPos = null;
-            _originalStamp = null;
-            _hasMoved = false;
-          },
-          onPanCancel: _cancelDrag,
-          child: ListenableBuilder(
-            listenable: widget.controller,
-            builder: (context, _) {
-              final isSelected = widget.controller.isSelected(widget.stampIndex);
-              final content = Transform.rotate(
-                angle: s.rotationDeg * math.pi / 180,
-                child: Text(
-                  s.text,
-                  style: TextStyle(
-                    fontSize: fontPx,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
-                ),
-              );
+              if (detectedPageIndex != null && widget.pages != null) {
+                // Update current page index if it changed
+                if (detectedPageIndex != _currentPageIndex) {
+                  _currentPageIndex = detectedPageIndex;
+                }
 
-              if (isSelected) {
-                final config = widget.selectionConfig ?? const SelectionConfig();
-                return Container(
-                  decoration: BoxDecoration(
-                    border: Border.fromBorderSide(
-                      BorderSide(
-                        color: config.borderColor,
-                        width: config.borderWidth,
-                      ),
+                final targetPage = widget.pages![_currentPageIndex]!;
+                final targetPageRect = widget.pageRects![_currentPageIndex]!;
+
+                // Convert global position to local position on the target page
+                final localPosOnPage =
+                    currentGlobalPos - targetPageRect.topLeft;
+
+                // Convert local pixels to PDF points
+                final newPdfPoint =
+                    PdfCoordinateConverter.viewerOffsetToPdfPoint(
+                  page: targetPage,
+                  localOffsetTopLeft: localPosOnPage,
+                  scaledPageSizePx: targetPageRect.size,
+                );
+
+                final updatedStamp = s.copyWith(
+                  pageIndex: _currentPageIndex,
+                  centerXPt: newPdfPoint.x,
+                  centerYPt: newPdfPoint.y,
+                );
+
+                widget.controller.updateStamp(widget.stampIndex, updatedStamp);
+                widget.onStampUpdated?.call(widget.stampIndex, updatedStamp);
+              }
+            },
+            onPanEnd: (_) {
+              widget.controller.setDraggingStamp(null);
+              if (!_hasMoved && widget.enableSelection) {
+                widget.controller.selectStamp(widget.stampIndex);
+                widget.onStampSelected?.call(widget.stampIndex, widget.stamp);
+              }
+              _initialLocalPos = null;
+              _originalStamp = null;
+              _currentPageIndex = null;
+              _hasMoved = false;
+            },
+            onPanCancel: _cancelDrag,
+            child: ListenableBuilder(
+              listenable: widget.controller,
+              builder: (context, _) {
+                final isSelected =
+                    widget.controller.isSelected(widget.stampIndex);
+                final content = Transform.rotate(
+                  angle: s.rotationDeg * math.pi / 180,
+                  child: Text(
+                    s.text,
+                    style: TextStyle(
+                      fontSize: fontPx,
+                      fontWeight: FontWeight.bold,
+                      color: s.color,
                     ),
                   ),
-                  child: content,
                 );
-              }
 
-              return content;
-            },
+                if (isSelected) {
+                  final config =
+                      widget.selectionConfig ?? const SelectionConfig();
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.fromBorderSide(
+                        BorderSide(
+                          color: config.borderColor,
+                          width: config.borderWidth,
+                        ),
+                      ),
+                    ),
+                    child: content,
+                  );
+                }
+
+                return content;
+              },
+            ),
           ),
         ),
       );
@@ -327,4 +443,3 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
     return positionedChild;
   }
 }
-

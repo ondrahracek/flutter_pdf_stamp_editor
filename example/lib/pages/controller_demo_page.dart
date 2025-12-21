@@ -7,7 +7,7 @@ import '../widgets/controller_controls.dart';
 import '../utils/asset_loader.dart';
 
 /// Demo page for PdfStampEditorController API.
-/// 
+///
 /// Demonstrates all controller methods including:
 /// - Programmatic stamp addition, update, and removal
 /// - Selection management
@@ -46,7 +46,8 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
 
   void _onControllerChanged() {
     setState(() {
-      _changeLog.add('Controller changed at ${DateTime.now().toString().substring(11, 19)}');
+      _changeLog.add(
+          'Controller changed at ${DateTime.now().toString().substring(11, 19)}');
     });
   }
 
@@ -58,7 +59,7 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
 
   void _addImageStamp() {
     if (_defaultStampBytes == null) return;
-    
+
     final stamp = ImageStamp(
       pageIndex: 0,
       centerXPt: 200.0,
@@ -82,6 +83,7 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
       rotationDeg: 0.0,
       text: 'APPROVED',
       fontSizePt: 18.0,
+      color: Colors.red,
     );
     controller.addStamp(stamp);
   }
@@ -165,7 +167,8 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
                     children: [
                       const Padding(
                         padding: EdgeInsets.all(16.0),
-                        child: Text('Pick a PDF to see PdfStampEditorPage integration'),
+                        child: Text(
+                            'Pick a PDF to see PdfStampEditorPage integration'),
                       ),
                       StampInfoPanel(
                         stamps: controller.stamps,
@@ -193,7 +196,8 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
                                   itemCount: _changeLog.length,
                                   itemBuilder: (context, index) {
                                     return Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 2.0),
                                       child: Text(
                                         _changeLog[index],
                                         style: const TextStyle(fontSize: 12),
@@ -264,76 +268,82 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
                           return SingleChildScrollView(
                             child: Column(
                               children: [
-                              StampInfoPanel(
-                                stamps: controller.stamps,
-                                selectedIndices: controller.selectedIndices,
-                                showStampsList: true,
-                              ),
-                              Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Text(
-                                        'Change Log',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
+                                StampInfoPanel(
+                                  stamps: controller.stamps,
+                                  selectedIndices: controller.selectedIndices,
+                                  showStampsList: true,
+                                ),
+                                Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          'Change Log',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      SizedBox(
-                                        height: 150,
-                                        child: ListView.builder(
-                                          itemCount: _changeLog.length,
-                                          itemBuilder: (context, index) {
-                                            return Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 2.0),
-                                              child: Text(
-                                                _changeLog[index],
-                                                style: const TextStyle(fontSize: 12),
-                                              ),
-                                            );
-                                          },
+                                        const SizedBox(height: 8),
+                                        SizedBox(
+                                          height: 150,
+                                          child: ListView.builder(
+                                            itemCount: _changeLog.length,
+                                            itemBuilder: (context, index) {
+                                              return Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 2.0),
+                                                child: Text(
+                                                  _changeLog[index],
+                                                  style: const TextStyle(
+                                                      fontSize: 12),
+                                                ),
+                                              );
+                                            },
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                              ElevatedButton.icon(
-                                onPressed: _addImageStamp,
-                                icon: const Icon(Icons.add),
-                                label: const Text('Add ImageStamp'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green.withOpacity(0.1),
-                                  foregroundColor: Colors.green,
+                                ElevatedButton.icon(
+                                  onPressed: _addImageStamp,
+                                  icon: const Icon(Icons.add),
+                                  label: const Text('Add ImageStamp'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Colors.green.withOpacity(0.1),
+                                    foregroundColor: Colors.green,
+                                  ),
                                 ),
-                              ),
-                              ElevatedButton.icon(
-                                onPressed: _addTextStamp,
-                                icon: const Icon(Icons.text_fields),
-                                label: const Text('Add TextStamp'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue.withOpacity(0.1),
-                                  foregroundColor: Colors.blue,
+                                ElevatedButton.icon(
+                                  onPressed: _addTextStamp,
+                                  icon: const Icon(Icons.text_fields),
+                                  label: const Text('Add TextStamp'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Colors.blue.withOpacity(0.1),
+                                    foregroundColor: Colors.blue,
+                                  ),
                                 ),
-                              ),
-                              ControllerControls(
-                                controller: controller,
-                                onAddStamp: _addImageStamp,
-                                onUpdateStamp: _updateStamp,
-                                onRemoveStamp: _removeStamp,
-                                onClearStamps: _clearStamps,
-                                onSelectStamp: _selectStamp,
-                                onClearSelection: _clearSelection,
-                                onDeleteSelected: _deleteSelected,
-                              ),
-                            ],
-                          ),
-                        );
+                                ControllerControls(
+                                  controller: controller,
+                                  onAddStamp: _addImageStamp,
+                                  onUpdateStamp: _updateStamp,
+                                  onRemoveStamp: _removeStamp,
+                                  onClearStamps: _clearStamps,
+                                  onSelectStamp: _selectStamp,
+                                  onClearSelection: _clearSelection,
+                                  onDeleteSelected: _deleteSelected,
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -343,4 +353,3 @@ class ControllerDemoPageState extends State<ControllerDemoPage> {
     );
   }
 }
-
