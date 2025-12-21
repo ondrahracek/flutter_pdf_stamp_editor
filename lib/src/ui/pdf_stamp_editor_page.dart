@@ -13,8 +13,6 @@ import '../controller/pdf_stamp_editor_controller.dart';
 import '../model/pdf_stamp.dart';
 import '../utils/coordinate_converter.dart';
 import 'draggable_stamp_widget.dart';
-import '../engine/stamper_platform.dart'
-    if (dart.library.html) '../engine/stamper_stub.dart';
 
 /// Configuration for default text stamp creation and styling
 class TextStampConfig {
@@ -144,13 +142,11 @@ class PdfStampEditorPage extends StatefulWidget {
 
 class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
   final List<PdfStamp> _stamps = [];
-  bool _showViewer =
-      true; // Controls viewer visibility to prevent concurrent PDFium calls
   File? _tempPdfFile; // Materialized PDF for viewer on non-web platforms
   List<int>? _pendingDeletedIndices;
   int _previousStampCount = 0;
   List<int> _previousSelectedIndices = [];
-  Map<int, Size> _imageDimensionCache = {};
+  final Map<int, Size> _imageDimensionCache = {};
 
   List<PdfStamp> get stamps =>
       widget.controller?.stamps ?? List.unmodifiable(_stamps);
@@ -280,55 +276,6 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
     setState(() => _tempPdfFile = file);
   }
 
-  Future<void> _exportStampedPdf() async {
-    final pdfBytes = widget.pdfBytes;
-    if (pdfBytes.isEmpty) return;
-
-    if (kIsWeb) {
-      _snack('Export not supported on this platform (FFI/PDFium required).');
-      return;
-    }
-
-    if (!Platform.isAndroid &&
-        !Platform.isIOS &&
-        !Platform.isWindows &&
-        !Platform.isMacOS &&
-        !Platform.isLinux) {
-      _snack('Export not supported on this platform (FFI/PDFium required).');
-      return;
-    }
-
-    // 1) Pause viewer to prevent concurrent PDFium calls
-    setState(() => _showViewer = false);
-    await WidgetsBinding.instance.endOfFrame;
-
-    try {
-      final outBytes = await PdfStampEditorExporter.applyStamps(
-        inputPdfBytes: pdfBytes,
-        stamps: stamps,
-      );
-
-      // In a real app, you'd save this or share it
-      // For now, just show a message
-      _snack('Export successful! ${outBytes.length} bytes');
-    } catch (e) {
-      _snack('Export failed: $e');
-      if (kDebugMode) {
-        rethrow;
-      }
-    } finally {
-      // 2) Resume viewer after stamping completes
-      if (mounted) {
-        setState(() => _showViewer = true);
-      }
-    }
-  }
-
-  void _snack(String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-  }
-
   @override
   Widget build(BuildContext context) {
     final pdfBytes = widget.pdfBytes;
@@ -351,19 +298,6 @@ class _PdfStampEditorPageState extends State<PdfStampEditorPage> {
           builder: (context) {
             if (pdfBytes.isEmpty) {
               return const Center(child: Text('No PDF loaded.'));
-            }
-
-            if (!_showViewer) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Exporting...'),
-                  ],
-                ),
-              );
             }
 
             // Web: in‑memory bytes
