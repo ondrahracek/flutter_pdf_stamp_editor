@@ -1,3 +1,42 @@
+## 0.2.0
+
+### Features
+
+* **Configuration System**: Added comprehensive configuration classes for customizing stamp behavior
+  * `TextStampConfig` - Configure default text stamp text, font size, color, and weight
+  * `ImageStampConfig` - Configure image stamp dimensions and aspect ratio behavior
+  * `SelectionConfig` - Configure selection border styling (color and width)
+  * `webSourceName` parameter - Configurable source name for web PDF viewer
+
+* **Image Aspect Ratio Computation**: Automatic height computation from actual PNG image dimensions
+  * When `ImageStampConfig.maintainAspectRatio` is true and `heightPt` is null, height is computed from image dimensions
+  * Image dimensions are cached for performance
+  * Falls back to default aspect ratio (0.35) if decoding fails
+
+### Improvements
+
+* **UI Cleanup**: Removed enforced AppBar for cleaner PDF viewer experience
+* **Better UX**: Removed error message when tapping without PNG selected (silent no-op)
+* **Layout Fixes**: Widget now properly expands to maximum height without breaking layout constraints
+* **Code Quality**: Removed excessive debug logging that spammed console output
+
+### API Changes
+
+* New parameters added to `PdfStampEditorPage`:
+  * `textStampConfig` (default: `TextStampConfig()`)
+  * `imageStampConfig` (default: `ImageStampConfig()`)
+  * `selectionConfig` (default: `SelectionConfig()`)
+  * `webSourceName` (default: `'stamped.pdf'`)
+
+* New configuration classes:
+  * `TextStampConfig` - Configuration for text stamp creation and styling
+  * `ImageStampConfig` - Configuration for image stamp creation
+  * `SelectionConfig` - Configuration for selection visual styling
+
+### Backward Compatibility
+
+All changes are backward compatible. Existing code will continue to work with sensible defaults.
+
 ## 0.1.0
 
 Initial release of the `pdf_stamp_editor` package - a Flutter package for viewing PDFs with stamp overlays and exporting stamped PDFs on mobile platforms.

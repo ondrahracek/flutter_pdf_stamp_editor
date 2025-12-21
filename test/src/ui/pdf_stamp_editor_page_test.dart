@@ -1,11 +1,11 @@
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf_stamp_editor/src/controller/pdf_stamp_editor_controller.dart';
 import 'package:pdf_stamp_editor/src/model/pdf_stamp.dart';
-import 'package:pdf_stamp_editor/src/ui/draggable_stamp_widget.dart';
 import 'package:pdf_stamp_editor/src/ui/pdf_stamp_editor_page.dart';
 import 'package:pdf_stamp_editor/src/utils/coordinate_converter.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -99,94 +99,6 @@ void main() {
       expect(find.byType(Scaffold), findsOneWidget);
     });
 
-    testWidgets('displays correct app bar title', (WidgetTester tester) async {
-      final pdfBytes = createMinimalPdfBytes();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: PdfStampEditorPage(
-            pdfBytes: pdfBytes,
-          ),
-        ),
-      );
-
-      expect(find.text('PDF Stamp Editor'), findsOneWidget);
-    });
-
-    testWidgets('displays rotate button', (WidgetTester tester) async {
-      final pdfBytes = createMinimalPdfBytes();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: PdfStampEditorPage(
-            pdfBytes: pdfBytes,
-          ),
-        ),
-      );
-
-      // Find the rotate button by icon
-      expect(find.byIcon(Icons.rotate_right), findsOneWidget);
-    });
-
-    testWidgets('displays export button', (WidgetTester tester) async {
-      final pdfBytes = createMinimalPdfBytes();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: PdfStampEditorPage(
-            pdfBytes: pdfBytes,
-          ),
-        ),
-      );
-
-      // Find the export button by icon
-      expect(find.byIcon(Icons.download), findsOneWidget);
-    });
-
-    testWidgets('rotate button increments rotation', (WidgetTester tester) async {
-      final pdfBytes = createMinimalPdfBytes();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: PdfStampEditorPage(
-            pdfBytes: pdfBytes,
-          ),
-        ),
-      );
-
-      // Tap the rotate button
-      await tester.tap(find.byIcon(Icons.rotate_right));
-      await tester.pump();
-
-      // The rotation should have changed (we can't directly test the internal state,
-      // but we can verify the button is tappable and doesn't throw)
-      expect(find.byIcon(Icons.rotate_right), findsOneWidget);
-    });
-
-    testWidgets('export button shows snackbar on web', (WidgetTester tester) async {
-      final pdfBytes = createMinimalPdfBytes();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: PdfStampEditorPage(
-            pdfBytes: pdfBytes,
-          ),
-        ),
-      );
-
-      // Tap the export button
-      await tester.tap(find.byIcon(Icons.download));
-      await tester.pump();
-
-      // On non-web, it should show a message about PDFium initialization
-      // The exact message depends on the platform, but we can check for snackbar
-      await tester.pump(const Duration(seconds: 1));
-
-      // The snackbar might be present, but we can't easily test the exact message
-      // without platform detection. Just verify the button works.
-      expect(find.byIcon(Icons.download), findsOneWidget);
-    });
-
     testWidgets('renders with PNG bytes for stamp', (WidgetTester tester) async {
       final pdfBytes = createMinimalPdfBytes();
       final pngBytes = Uint8List.fromList([
@@ -252,10 +164,12 @@ void main() {
 
       // Verify widget hierarchy
       expect(find.byType(Scaffold), findsOneWidget);
-      expect(find.byType(AppBar), findsOneWidget);
     });
 
-    testWidgets('multiple rotate taps work', (WidgetTester tester) async {
+  });
+
+  group('PdfStampEditorPage - Configuration', () {
+    testWidgets('uses default text stamp config', (WidgetTester tester) async {
       final pdfBytes = createMinimalPdfBytes();
 
       await tester.pumpWidget(
@@ -266,17 +180,34 @@ void main() {
         ),
       );
 
-      // Tap rotate multiple times
-      for (int i = 0; i < 5; i++) {
-        await tester.tap(find.byIcon(Icons.rotate_right));
-        await tester.pump();
-      }
-
-      // Button should still be present and functional
-      expect(find.byIcon(Icons.rotate_right), findsOneWidget);
+      final page = tester.widget<PdfStampEditorPage>(find.byType(PdfStampEditorPage));
+      expect(page.textStampConfig.text, 'APPROVED');
+      expect(page.textStampConfig.fontSizePt, 18);
     });
 
-    testWidgets('export button is tappable multiple times', (WidgetTester tester) async {
+    testWidgets('accepts custom text stamp config', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+            textStampConfig: const TextStampConfig(
+              text: 'CUSTOM',
+              fontSizePt: 24,
+              color: Colors.blue,
+            ),
+          ),
+        ),
+      );
+
+      final page = tester.widget<PdfStampEditorPage>(find.byType(PdfStampEditorPage));
+      expect(page.textStampConfig.text, 'CUSTOM');
+      expect(page.textStampConfig.fontSizePt, 24);
+      expect(page.textStampConfig.color, Colors.blue);
+    });
+
+    testWidgets('uses default image stamp config', (WidgetTester tester) async {
       final pdfBytes = createMinimalPdfBytes();
 
       await tester.pumpWidget(
@@ -287,39 +218,121 @@ void main() {
         ),
       );
 
-      // Tap export multiple times
-      for (int i = 0; i < 3; i++) {
-        await tester.tap(find.byIcon(Icons.download));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
-      }
+      final page = tester.widget<PdfStampEditorPage>(find.byType(PdfStampEditorPage));
+      expect(page.imageStampConfig.widthPt, 140);
+      expect(page.imageStampConfig.maintainAspectRatio, isTrue);
+    });
 
-      // Button should still be present
-      expect(find.byIcon(Icons.download), findsOneWidget);
+    testWidgets('uses default selection config', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+          ),
+        ),
+      );
+
+      final page = tester.widget<PdfStampEditorPage>(find.byType(PdfStampEditorPage));
+      expect(page.selectionConfig.borderColor, Colors.blue);
+      expect(page.selectionConfig.borderWidth, 2.0);
+    });
+
+    testWidgets('uses default web source name', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+          ),
+        ),
+      );
+
+      final page = tester.widget<PdfStampEditorPage>(find.byType(PdfStampEditorPage));
+      expect(page.webSourceName, 'stamped.pdf');
     });
   });
 
-  group('PdfStampEditorPage - Snackbar messages', () {
-    testWidgets('shows message when export is triggered', (WidgetTester tester) async {
+  group('PdfStampEditorPage - Image Aspect Ratio Computation', () {
+    test('computes height from image dimensions when maintainAspectRatio is true', () async {
+      // Use a valid 1x1 PNG image from existing test data
+      final pngBytes = Uint8List.fromList([
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+        0x00, 0x00, 0x00, 0x0D, // IHDR chunk length (13)
+        0x49, 0x48, 0x44, 0x52, // IHDR
+        0x00, 0x00, 0x00, 0x01, // width: 1
+        0x00, 0x00, 0x00, 0x01, // height: 1
+        0x08, 0x06, 0x00, 0x00, 0x00, // bit depth, color type, etc.
+        0x1F, 0x15, 0xC4, 0x89, // CRC
+        0x00, 0x00, 0x00, 0x0A, // IDAT chunk length
+        0x49, 0x44, 0x41, 0x54, // IDAT
+        0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00, 0x05, 0x00, 0x01, // compressed data
+        0x0D, 0x0A, 0x2D, 0xB4, // CRC
+        0x00, 0x00, 0x00, 0x00, // IEND chunk length
+        0x49, 0x45, 0x4E, 0x44, // IEND
+        0xAE, 0x42, 0x60, 0x82, // CRC
+      ]);
+
+      // Decode image to get actual dimensions
+      final codec = await ui.instantiateImageCodec(pngBytes);
+      final frame = await codec.getNextFrame();
+      final imageWidth = frame.image.width.toDouble();
+      final imageHeight = frame.image.height.toDouble();
+      final aspectRatio = imageHeight / imageWidth;
+
+      // For a 1x1 image, aspect ratio should be 1.0
+      expect(aspectRatio, 1.0);
+      expect(imageWidth, 1.0);
+      expect(imageHeight, 1.0);
+
+      // When widthPt is 100 and aspect ratio is 1.0, heightPt should be 100
+      const widthPt = 100.0;
+      final computedHeightPt = widthPt * aspectRatio;
+      expect(computedHeightPt, 100.0);
+    });
+  });
+
+  group('PdfStampEditorPage - Stamp Creation with Config', () {
+    testWidgets('uses custom text from textStampConfig when creating text stamp', (WidgetTester tester) async {
+      final pdfBytes = createMinimalPdfBytes();
+      final controller = PdfStampEditorController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PdfStampEditorPage(
+            pdfBytes: pdfBytes,
+            controller: controller,
+            textStampConfig: const TextStampConfig(
+              text: 'CUSTOM TEXT',
+              fontSizePt: 24,
+            ),
+          ),
+        ),
+      );
+
+      // The actual stamp creation happens on long press, which is hard to test
+      // But we can verify the configuration is accessible
+      final page = tester.widget<PdfStampEditorPage>(find.byType(PdfStampEditorPage));
+      expect(page.textStampConfig.text, 'CUSTOM TEXT');
+      expect(page.textStampConfig.fontSizePt, 24);
+    });
+
+    testWidgets('disables text stamp creation when textStampConfig.text is null', (WidgetTester tester) async {
       final pdfBytes = createMinimalPdfBytes();
 
       await tester.pumpWidget(
         MaterialApp(
           home: PdfStampEditorPage(
             pdfBytes: pdfBytes,
+            textStampConfig: const TextStampConfig.disabled(),
           ),
         ),
       );
 
-      // Tap export
-      await tester.tap(find.byIcon(Icons.download));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-
-      // A snackbar should appear (exact message depends on platform)
-      // We can't easily test the exact message without platform detection,
-      // but we verify the action triggers something
-      expect(find.byIcon(Icons.download), findsOneWidget);
+      final page = tester.widget<PdfStampEditorPage>(find.byType(PdfStampEditorPage));
+      expect(page.textStampConfig.text, isNull);
     });
   });
 

@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -8,6 +7,7 @@ import 'package:pdfrx/pdfrx.dart';
 import '../controller/pdf_stamp_editor_controller.dart';
 import '../model/pdf_stamp.dart';
 import '../utils/coordinate_converter.dart';
+import 'pdf_stamp_editor_page.dart';
 
 class DraggableStampWidget extends StatefulWidget {
   const DraggableStampWidget({
@@ -27,6 +27,7 @@ class DraggableStampWidget extends StatefulWidget {
     this.maxWidthPt,
     this.maxHeightPt,
     this.rotationSnapDegrees,
+    this.selectionConfig,
   });
 
   final PdfStamp stamp;
@@ -44,6 +45,7 @@ class DraggableStampWidget extends StatefulWidget {
   final double? maxWidthPt;
   final double? maxHeightPt;
   final double? rotationSnapDegrees;
+  final SelectionConfig? selectionConfig;
 
   @override
   State<DraggableStampWidget> createState() => _DraggableStampWidgetState();
@@ -92,13 +94,6 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
       yPt: widget.stamp.centerYPt,
       scaledPageSizePx: widget.scaledPageSizePx,
     );
-    
-    if (kDebugMode) {
-      debugPrint('[PdfStampEditor] DraggableStampWidget.build: '
-          'stamp.pdfPos=(${widget.stamp.centerXPt}, ${widget.stamp.centerYPt}), '
-          'scaledPageSizePx=${widget.scaledPageSizePx}, '
-          'posPx=$posPx');
-    }
 
     Widget positionedChild;
     if (widget.stamp case ImageStamp s) {
@@ -219,10 +214,14 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
               );
 
               if (isSelected) {
+                final config = widget.selectionConfig ?? const SelectionConfig();
                 return Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     border: Border.fromBorderSide(
-                      BorderSide(color: Colors.blue, width: 2),
+                      BorderSide(
+                        color: config.borderColor,
+                        width: config.borderWidth,
+                      ),
                     ),
                   ),
                   child: content,
@@ -302,10 +301,14 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
               );
 
               if (isSelected) {
+                final config = widget.selectionConfig ?? const SelectionConfig();
                 return Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     border: Border.fromBorderSide(
-                      BorderSide(color: Colors.blue, width: 2),
+                      BorderSide(
+                        color: config.borderColor,
+                        width: config.borderWidth,
+                      ),
                     ),
                   ),
                   child: content,

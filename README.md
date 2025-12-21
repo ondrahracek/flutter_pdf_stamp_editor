@@ -10,7 +10,7 @@ A Flutter package for viewing PDFs with stamp overlays and exporting stamped PDF
 - 💾 **PDF Export**: Export stamped PDFs with vector-based stamping (mobile only)
 - 🎮 **Programmatic Control**: Full API for adding, updating, and managing stamps
 - 🌐 **Web Support**: View and place stamps on web (export disabled)
-- 🎨 **Customizable**: Support for both PNG image stamps and text stamps with custom rendering
+- 🎨 **Customizable**: Support for both PNG image stamps and text stamps with configurable defaults and custom rendering
 
 ## Platform Support
 
@@ -26,7 +26,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  pdf_stamp_editor: ^0.1.0
+  pdf_stamp_editor: ^0.2.0
 ```
 
 ### Quick Start
@@ -88,6 +88,55 @@ PdfStampEditorPage(
 )
 ```
 
+### Configuration
+
+Customize stamp behavior using configuration classes:
+
+```dart
+PdfStampEditorPage(
+  pdfBytes: pdfBytes,
+  pngBytes: pngBytes,
+  
+  // Configure text stamps
+  textStampConfig: const TextStampConfig(
+    text: 'CONFIDENTIAL',
+    fontSizePt: 24,
+    color: Colors.blue,
+    fontWeight: FontWeight.bold,
+  ),
+  // Or disable text stamps entirely:
+  // textStampConfig: const TextStampConfig.disabled(),
+  
+  // Configure image stamps
+  imageStampConfig: const ImageStampConfig(
+    widthPt: 200,
+    heightPt: null, // null = compute from image aspect ratio
+    maintainAspectRatio: true, // Use actual image dimensions
+  ),
+  // Or use explicit dimensions:
+  // imageStampConfig: const ImageStampConfig.explicit(
+  //   widthPt: 200,
+  //   heightPt: 100,
+  // ),
+  
+  // Configure selection styling
+  selectionConfig: const SelectionConfig(
+    borderColor: Colors.green,
+    borderWidth: 3.0,
+  ),
+  
+  // Configure web PDF viewer source name
+  webSourceName: 'my-document.pdf',
+)
+```
+
+**Configuration Options:**
+- `TextStampConfig`: Customize text stamp text, font size, color, and weight
+- `ImageStampConfig`: Configure image stamp dimensions and aspect ratio behavior
+  - When `maintainAspectRatio: true` and `heightPt: null`, height is automatically computed from image dimensions
+- `SelectionConfig`: Customize selection border color and width
+- `webSourceName`: Set the source name for the web PDF viewer
+
 ### Interactive Editing
 
 Enable drag, resize, rotate, and selection gestures:
@@ -107,7 +156,7 @@ PdfStampEditorPage(
 - **Drag**: Tap and hold a stamp, then drag to move it (requires `enableDrag: true` and a `controller`)
 - **Resize**: Pinch to zoom on a stamp to resize it
 - **Rotate**: Use rotation gesture (two fingers) on a stamp to rotate it
-- **Select**: Tap a stamp to select it (shows blue border)
+- **Select**: Tap a stamp to select it (shows border with configurable color and width)
 - **Delete**: Select stamps and press Backspace/Delete key (requires a `controller`)
 
 ### Programmatic Control
@@ -218,6 +267,60 @@ Future<void> exportPdf(Uint8List pdfBytes, List<PdfStamp> stamps) async {
 - **iOS**: PDFKit framework
 
 ## Advanced Features
+
+### Configuration
+
+Customize default stamp creation and styling behavior:
+
+#### Text Stamp Configuration
+
+```dart
+// Customize text stamp defaults
+textStampConfig: const TextStampConfig(
+  text: 'APPROVED',           // Text to place on long press
+  fontSizePt: 18,              // Font size in points
+  color: Colors.red,           // Text color
+  fontWeight: FontWeight.bold, // Font weight
+),
+
+// Disable text stamp creation entirely
+textStampConfig: const TextStampConfig.disabled(),
+```
+
+#### Image Stamp Configuration
+
+```dart
+// Auto-compute height from image aspect ratio (recommended)
+imageStampConfig: const ImageStampConfig(
+  widthPt: 200,
+  heightPt: null,              // null = compute from image
+  maintainAspectRatio: true,   // Use actual image dimensions
+),
+
+// Use explicit width and height
+imageStampConfig: const ImageStampConfig.explicit(
+  widthPt: 200,
+  heightPt: 100,
+),
+
+// Use default aspect ratio (0.35) when maintainAspectRatio is false
+imageStampConfig: const ImageStampConfig(
+  widthPt: 200,
+  heightPt: null,
+  maintainAspectRatio: false, // Use default ratio
+),
+```
+
+When `maintainAspectRatio` is `true` and `heightPt` is `null`, the package automatically decodes the PNG image to get its actual dimensions and computes the height to maintain the aspect ratio. This ensures stamps always display with the correct proportions.
+
+#### Selection Configuration
+
+```dart
+selectionConfig: const SelectionConfig(
+  borderColor: Colors.blue, // Border color for selected stamps
+  borderWidth: 2.0,          // Border width in pixels
+),
+```
 
 ### Callbacks
 
@@ -370,6 +473,9 @@ flutter run
 | `PdfStamp`                 | Base class for stamps (sealed)               |
 | `ImageStamp`               | Image stamp with PNG bytes                   |
 | `TextStamp`                | Text stamp with customizable text            |
+| `TextStampConfig`          | Configuration for text stamp creation        |
+| `ImageStampConfig`         | Configuration for image stamp creation       |
+| `SelectionConfig`          | Configuration for selection styling          |
 | `PdfStampEditorExporter`   | Export engine for applying stamps to PDFs    |
 | `PdfCoordinateConverter`   | Utilities for coordinate conversion          |
 | `MatrixCalculator`         | Calculate PDF transformation matrices        |
