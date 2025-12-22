@@ -268,7 +268,7 @@ private func stampWithPdfKit(pdfData: Data, payload: Data) throws -> Data {
       } else if type == 2 {
         // Text stamp
         let fontSize = try r.f64()
-        _ = try r.u32() // argb (unused for now)
+        let argb = try r.u32()
         let tlenU32 = try r.u32()
         
         guard let tlen = Int(exactly: tlenU32) else {
@@ -310,7 +310,11 @@ private func stampWithPdfKit(pdfData: Data, payload: Data) throws -> Data {
         ann.contents = s
         ann.font = UIFont.boldSystemFont(ofSize: CGFloat(fontSize))
         ann.color = .clear
-        ann.fontColor = .red
+        // Extract RGB components from ARGB (AARRGGBB format)
+        let r = CGFloat((argb >> 16) & 0xFF) / 255.0
+        let g = CGFloat((argb >> 8) & 0xFF) / 255.0
+        let b = CGFloat(argb & 0xFF) / 255.0
+        ann.fontColor = UIColor(red: r, green: g, blue: b, alpha: 1.0)
         // Note: PDFKit doesn't directly support rotation on freeText annotations
         // Rotation would need to be handled differently if required
         page.addAnnotation(ann)

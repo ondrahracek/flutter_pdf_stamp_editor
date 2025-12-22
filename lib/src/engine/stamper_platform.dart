@@ -16,7 +16,7 @@ class PdfStampEditorExporter {
     required Uint8List inputPdfBytes,
     required List<PdfStamp> stamps,
   }) async {
-    final payload = _encodePayloadV1(stamps);
+    final payload = encodePayloadV1(stamps);
     final out = await _channel.invokeMethod<Uint8List>(
       'stampPdf',
       {
@@ -31,13 +31,14 @@ class PdfStampEditorExporter {
   }
 
   /// Binary payload (versioned) that native code can parse efficiently.
-  static Uint8List _encodePayloadV1(List<PdfStamp> stamps) {
+  static Uint8List encodePayloadV1(List<PdfStamp> stamps) {
     final b = BytesBuilder(copy: false);
     void u8(int v) => b.add([v & 0xFF]);
     void u32(int v) {
       final d = ByteData(4)..setUint32(0, v, Endian.little);
       b.add(d.buffer.asUint8List());
     }
+
     void f64(double v) {
       final d = ByteData(8)..setFloat64(0, v, Endian.little);
       b.add(d.buffer.asUint8List());
@@ -70,8 +71,8 @@ class PdfStampEditorExporter {
         f64(0); // height placeholder
         f64(s.rotationDeg);
         f64(s.fontSizePt);
-        // ARGB red
-        u32(0xFFFF0000);
+        // ARGB color value
+        u32(s.color.value);
         final utf8Bytes = utf8.encode(s.text);
         u32(utf8Bytes.length);
         b.add(utf8Bytes);
@@ -83,5 +84,3 @@ class PdfStampEditorExporter {
     return b.takeBytes();
   }
 }
-
-
