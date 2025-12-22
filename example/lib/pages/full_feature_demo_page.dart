@@ -135,7 +135,8 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
                                     _buildModeSelector(),
                                     StampInfoPanel(
                                       stamps: controller.stamps,
-                                      selectedIndices: controller.selectedIndices,
+                                      selectedIndices:
+                                          controller.selectedIndices,
                                       showStampsList: true,
                                     ),
                                     ControllerControls(
@@ -153,7 +154,8 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
                               },
                             ),
                             _buildWorkflowInstructions(),
-                            if (_exportedPdfFile != null) _buildExportVerification(),
+                            if (_exportedPdfFile != null)
+                              _buildExportVerification(),
                             _buildCallbackLogPanel(),
                           ],
                         ),
@@ -170,6 +172,20 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
                         enableResize: true,
                         enableRotate: true,
                         enableSelection: true,
+                        selectionConfig: const SelectionConfig(
+                          borderColor: Colors.blue,
+                          borderWidth: 2.0,
+                          deleteButtonConfig: DeleteButtonConfig(
+                            backgroundColor: Colors.red,
+                            iconColor: Colors.white,
+                            size: 28.0,
+                            hitAreaSize: 44.0,
+                            icon: Icons.close,
+                            offsetX: 24.0,
+                            offsetY: -24.0,
+                            elevation: 0.0,
+                          ),
+                        ),
                         onStampsChanged: _onStampsChanged,
                         onStampSelected: _onStampSelected,
                         onStampUpdated: _onStampUpdated,
@@ -178,7 +194,7 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
                         onLongPressDown: _onLongPressDown,
                         onImageStampPlaced: () {
                           // Keep PNG bytes so we can keep placing in image mode
-                          // setState(() => _pngBytes = null); 
+                          // setState(() => _pngBytes = null);
                         },
                       ),
                     ),
@@ -311,7 +327,7 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
             const Text('8. Select: Tap a stamp to select it'),
             const SizedBox(height: 8),
             const Text(
-                '9. Delete: Use controller buttons or delete selected stamps'),
+                '9. Delete: Tap the red X button on selected stamps, or use controller buttons'),
             const SizedBox(height: 8),
             const Text('10. Export: Tap the save icon to export stamped PDF'),
           ],
@@ -482,13 +498,15 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
 
       final dir = await getApplicationDocumentsDirectory();
       final outFile = File(
-        p.join(dir.path, 'stamped_${DateTime.now().millisecondsSinceEpoch}.pdf'),
+        p.join(
+            dir.path, 'stamped_${DateTime.now().millisecondsSinceEpoch}.pdf'),
       );
       await outFile.writeAsBytes(outBytes);
 
       setState(() {
         _exportedPdfFile = outFile;
-        _snack('Exported: ${outFile.path}. Use "Reload Exported PDF" to verify stamps.');
+        _snack(
+            'Exported: ${outFile.path}. Use "Reload Exported PDF" to verify stamps.');
       });
     } catch (e) {
       _snack('Export failed: $e');
@@ -509,7 +527,7 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
 
   void _addImageStamp() {
     if (_pngBytes == null) return;
-    
+
     final stamp = ImageStamp(
       pageIndex: 0,
       centerXPt: 200.0,
@@ -564,4 +582,3 @@ class FullFeatureDemoPageState extends State<FullFeatureDemoPage> {
     controller.deleteSelectedStamps();
   }
 }
-

@@ -76,6 +76,7 @@ void main() {
 
       expect(config.borderColor, Colors.blue);
       expect(config.borderWidth, 2.0);
+      expect(config.deleteButtonConfig, isNull);
     });
 
     test('creates with custom values', () {
@@ -86,6 +87,74 @@ void main() {
 
       expect(config.borderColor, Colors.green);
       expect(config.borderWidth, 3.0);
+      expect(config.deleteButtonConfig, isNull);
+    });
+
+    test('creates with deleteButtonConfig', () {
+      const deleteConfig = DeleteButtonConfig(
+        backgroundColor: Colors.orange,
+        size: 30.0,
+      );
+      const config = SelectionConfig(
+        borderColor: Colors.green,
+        borderWidth: 3.0,
+        deleteButtonConfig: deleteConfig,
+      );
+
+      expect(config.borderColor, Colors.green);
+      expect(config.borderWidth, 3.0);
+      expect(config.deleteButtonConfig, deleteConfig);
+      expect(config.deleteButtonConfig?.backgroundColor, Colors.orange);
+      expect(config.deleteButtonConfig?.size, 30.0);
+    });
+  });
+
+  group('DeleteButtonConfig', () {
+    test('creates with default values', () {
+      const config = DeleteButtonConfig();
+
+      expect(config.enabled, isTrue);
+      expect(config.backgroundColor, Colors.red);
+      expect(config.iconColor, Colors.white);
+      expect(config.size, 28.0);
+      expect(config.hitAreaSize, 44.0);
+      expect(config.icon, Icons.close);
+      expect(config.offsetX, 24.0);
+      expect(config.offsetY, -24.0);
+      expect(config.elevation, 2.0);
+    });
+
+    test('creates with custom values', () {
+      const config = DeleteButtonConfig(
+        enabled: true,
+        backgroundColor: Colors.blue,
+        iconColor: Colors.black,
+        size: 32.0,
+        hitAreaSize: 48.0,
+        icon: Icons.delete_outline,
+        offsetX: -10.0,
+        offsetY: -10.0,
+        elevation: 4.0,
+      );
+
+      expect(config.enabled, isTrue);
+      expect(config.backgroundColor, Colors.blue);
+      expect(config.iconColor, Colors.black);
+      expect(config.size, 32.0);
+      expect(config.hitAreaSize, 48.0);
+      expect(config.icon, Icons.delete_outline);
+      expect(config.offsetX, -10.0);
+      expect(config.offsetY, -10.0);
+      expect(config.elevation, 4.0);
+    });
+
+    test('disabled constructor sets enabled to false', () {
+      const config = DeleteButtonConfig.disabled();
+
+      expect(config.enabled, isFalse);
+      expect(config.backgroundColor, Colors.red);
+      expect(config.iconColor, Colors.white);
+      expect(config.size, 28.0);
     });
   });
 }

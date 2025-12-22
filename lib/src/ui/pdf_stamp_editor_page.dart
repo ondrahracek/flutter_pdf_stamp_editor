@@ -82,13 +82,41 @@ class ImageStampConfig {
 }
 
 /// Configuration for selection visual styling
+class DeleteButtonConfig {
+  final bool enabled;
+  final Color backgroundColor;
+  final Color iconColor;
+  final double size;
+  final double hitAreaSize;
+  final IconData icon;
+  final double offsetX;
+  final double offsetY;
+  final double elevation;
+
+  const DeleteButtonConfig({
+    this.enabled = true,
+    this.backgroundColor = Colors.red,
+    this.iconColor = Colors.white,
+    this.size = 28.0,
+    this.hitAreaSize = 44.0,
+    this.icon = Icons.close,
+    this.offsetX = 24.0,
+    this.offsetY = -24.0,
+    this.elevation = 2.0,
+  });
+
+  const DeleteButtonConfig.disabled() : this(enabled: false);
+}
+
 class SelectionConfig {
   final Color borderColor;
   final double borderWidth;
+  final DeleteButtonConfig? deleteButtonConfig;
 
   const SelectionConfig({
     this.borderColor = Colors.blue,
     this.borderWidth = 2.0,
+    this.deleteButtonConfig,
   });
 }
 

@@ -108,6 +108,65 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
     super.deactivate();
   }
 
+  Widget _buildDeleteButton(
+    DeleteButtonConfig deleteConfig,
+    double stampLeft,
+    double stampTop,
+    double stampWidth,
+    double stampHeight,
+    bool isSelected,
+  ) {
+    // Position button relative to visual stamp content, not expanded bounding box
+    // When selected, stamp coordinates include hitAreaExpansion, so we need to adjust
+    const hitAreaExpansion = 40.0;
+    final visualStampTop = isSelected ? stampTop + hitAreaExpansion : stampTop;
+    final visualStampRight = isSelected
+        ? (stampLeft + stampWidth) - hitAreaExpansion
+        : stampLeft + stampWidth;
+
+    // Position button so its top-right corner aligns with visual stamp's top-right corner
+    // Then apply offset to move it slightly outside
+    // Positioned widget uses left/top for top-left corner, so we subtract width
+    final buttonLeft =
+        visualStampRight - deleteConfig.hitAreaSize + deleteConfig.offsetX;
+    final buttonTop = visualStampTop + deleteConfig.offsetY;
+
+    return Positioned(
+      left: buttonLeft,
+      top: buttonTop,
+      width: deleteConfig.hitAreaSize,
+      height: deleteConfig.hitAreaSize,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          widget.controller.removeStamp(widget.stampIndex);
+        },
+        child: Center(
+          child: Container(
+            width: deleteConfig.size,
+            height: deleteConfig.size,
+            decoration: BoxDecoration(
+              color: deleteConfig.backgroundColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: deleteConfig.elevation,
+                  offset: Offset(0, deleteConfig.elevation / 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              deleteConfig.icon,
+              color: deleteConfig.iconColor,
+              size: deleteConfig.size * 0.6,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -125,6 +184,11 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
         );
 
         Widget positionedChild;
+        double? stampLeft;
+        double? stampTop;
+        double? stampWidth;
+        double? stampHeight;
+
         if (widget.stamp case ImageStamp s) {
           final scale = PdfCoordinateConverter.pageScaleFactors(
             widget.page,
@@ -133,11 +197,16 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
           final wPx = s.widthPt * scale.sx;
           final hPx = s.heightPt * scale.sy;
 
+          stampLeft = posPx.dx - wPx / 2 - (isSelected ? hitAreaExpansion : 0);
+          stampTop = posPx.dy - hPx / 2 - (isSelected ? hitAreaExpansion : 0);
+          stampWidth = wPx + (isSelected ? hitAreaExpansion * 2 : 0);
+          stampHeight = hPx + (isSelected ? hitAreaExpansion * 2 : 0);
+
           positionedChild = Positioned(
-            left: posPx.dx - wPx / 2 - (isSelected ? hitAreaExpansion : 0),
-            top: posPx.dy - hPx / 2 - (isSelected ? hitAreaExpansion : 0),
-            width: wPx + (isSelected ? hitAreaExpansion * 2 : 0),
-            height: hPx + (isSelected ? hitAreaExpansion * 2 : 0),
+            left: stampLeft,
+            top: stampTop,
+            width: stampWidth,
+            height: stampHeight,
             child: Opacity(
               opacity: widget.isVisible ? 1.0 : 0.0,
               child: GestureDetector(
@@ -366,11 +435,16 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
           final wPx = textPainter.width;
           final hPx = textPainter.height;
 
+          stampLeft = posPx.dx - wPx / 2 - (isSelected ? hitAreaExpansion : 0);
+          stampTop = posPx.dy - hPx / 2 - (isSelected ? hitAreaExpansion : 0);
+          stampWidth = wPx + (isSelected ? hitAreaExpansion * 2 : 0);
+          stampHeight = hPx + (isSelected ? hitAreaExpansion * 2 : 0);
+
           positionedChild = Positioned(
-            left: posPx.dx - wPx / 2 - (isSelected ? hitAreaExpansion : 0),
-            top: posPx.dy - hPx / 2 - (isSelected ? hitAreaExpansion : 0),
-            width: wPx + (isSelected ? hitAreaExpansion * 2 : 0),
-            height: hPx + (isSelected ? hitAreaExpansion * 2 : 0),
+            left: stampLeft,
+            top: stampTop,
+            width: stampWidth,
+            height: stampHeight,
             child: Opacity(
               opacity: widget.isVisible ? 1.0 : 0.0,
               child: GestureDetector(
@@ -566,6 +640,35 @@ class _DraggableStampWidgetState extends State<DraggableStampWidget> {
           );
         } else {
           positionedChild = const SizedBox.shrink();
+        }
+
+        // Wrap in Stack to add delete button overlay when selected
+        final deleteConfig =
+            isSelected ? widget.selectionConfig?.deleteButtonConfig : null;
+        if (deleteConfig != null &&
+            deleteConfig.enabled &&
+            stampLeft != null &&
+            stampTop != null &&
+            stampWidth != null &&
+            stampHeight != null) {
+          // Extract non-null values (flow analysis ensures they're non-null here)
+          final left = stampLeft;
+          final top = stampTop;
+          final width = stampWidth;
+          final height = stampHeight;
+          return Stack(
+            children: [
+              positionedChild,
+              _buildDeleteButton(
+                deleteConfig,
+                left,
+                top,
+                width,
+                height,
+                isSelected,
+              ),
+            ],
+          );
         }
 
         return positionedChild;

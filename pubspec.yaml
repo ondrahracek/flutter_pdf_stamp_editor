@@ -1,6 +1,6 @@
 name: pdf_stamp_editor
 description: "PDF viewer with stamp overlays and native export layer (Android+iOS supported)."
-version: 0.4.0
+version: 0.5.0
 homepage: https://github.com/ondrahracek/flutter_pdf_stamp_editor
 repository: https://github.com/ondrahracek/flutter_pdf_stamp_editor
 issue_tracker: https://github.com/ondrahracek/flutter_pdf_stamp_editor/issues

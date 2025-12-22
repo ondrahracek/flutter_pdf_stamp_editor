@@ -26,7 +26,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  pdf_stamp_editor: ^0.4.0
+  pdf_stamp_editor: ^0.5.0
 ```
 
 ### Quick Start
@@ -135,7 +135,7 @@ PdfStampEditorPage(
 - `TextStampConfig`: Customize text stamp text, font size, color, and weight
 - `ImageStampConfig`: Configure image stamp dimensions and aspect ratio behavior
   - When `maintainAspectRatio: true` and `heightPt: null`, height is automatically computed from image dimensions
-- `SelectionConfig`: Customize selection border color and width
+- `SelectionConfig`: Customize selection border and delete button appearance
 - `webSourceName`: Set the source name for the web PDF viewer
 
 ### Interactive Editing
@@ -158,7 +158,7 @@ PdfStampEditorPage(
 - **Resize**: Pinch to zoom on a stamp to resize it
 - **Rotate**: Use rotation gesture (two fingers) on a stamp to rotate it
 - **Select**: Tap a stamp to select it (shows border with configurable color and width)
-- **Delete**: Select stamps and press Backspace/Delete key (requires a `controller`)
+- **Delete**: Tap the delete button on selected stamps, use controller buttons, or press Backspace/Delete key
 
 ### Programmatic Control
 
@@ -320,6 +320,15 @@ When `maintainAspectRatio` is `true` and `heightPt` is `null`, the package autom
 selectionConfig: const SelectionConfig(
   borderColor: Colors.blue, // Border color for selected stamps
   borderWidth: 2.0,          // Border width in pixels
+  deleteButtonConfig: DeleteButtonConfig(
+    backgroundColor: Colors.red,
+    iconColor: Colors.white,
+    size: 28.0,
+    offsetX: 24.0,
+    offsetY: -24.0,
+  ),
+  // Or disable delete button:
+  // deleteButtonConfig: DeleteButtonConfig.disabled(),
 ),
 ```
 
@@ -478,6 +487,7 @@ flutter run
 | `ImageStampConfig`         | Configuration for image stamp creation       |
 | `StampEditorMode`          | Interaction mode enum (none, text, image)    |
 | `SelectionConfig`          | Configuration for selection styling          |
+| `DeleteButtonConfig`      | Configuration for delete button styling          |
 | `PdfStampEditorExporter`   | Export engine for applying stamps to PDFs    |
 | `PdfCoordinateConverter`   | Utilities for coordinate conversion          |
 | `MatrixCalculator`         | Calculate PDF transformation matrices        |

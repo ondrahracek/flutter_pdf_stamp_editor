@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf_stamp_editor/src/controller/pdf_stamp_editor_controller.dart';
 import 'package:pdf_stamp_editor/src/model/pdf_stamp.dart';
 import 'package:pdf_stamp_editor/src/ui/draggable_stamp_widget.dart';
+import 'package:pdf_stamp_editor/src/ui/pdf_stamp_editor_page.dart';
 import 'package:pdf_stamp_editor/src/utils/coordinate_converter.dart';
 import 'package:pdfrx/pdfrx.dart';
 
@@ -2475,6 +2476,702 @@ void main() {
 
       expect(controller.isSelected(0), isTrue);
       expect(find.byType(Container), findsOneWidget);
+    });
+
+    testWidgets('selected stamp shows delete button when deleteButtonConfig is provided',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 50.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+      const deleteButtonConfig = DeleteButtonConfig();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                        selectionConfig: const SelectionConfig(
+                          deleteButtonConfig: deleteButtonConfig,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(controller.isSelected(0), isFalse);
+      expect(find.byIcon(Icons.close), findsNothing);
+
+      controller.selectStamp(0);
+      await tester.pump();
+
+      expect(controller.isSelected(0), isTrue);
+      expect(find.byIcon(Icons.close), findsOneWidget);
+    });
+
+    testWidgets('tapping delete button removes the stamp',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 50.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+      const deleteButtonConfig = DeleteButtonConfig();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  if (controller.stamps.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                        selectionConfig: const SelectionConfig(
+                          deleteButtonConfig: deleteButtonConfig,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(controller.stamps.length, 1);
+      controller.selectStamp(0);
+      await tester.pump();
+
+      expect(find.byIcon(Icons.close), findsOneWidget);
+      
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pump();
+
+      expect(controller.stamps.length, 0);
+    });
+
+    testWidgets('delete button is not shown when deleteButtonConfig is disabled',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 50.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                        selectionConfig: const SelectionConfig(
+                          deleteButtonConfig: DeleteButtonConfig.disabled(),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      controller.selectStamp(0);
+      await tester.pump();
+
+      expect(controller.isSelected(0), isTrue);
+      expect(find.byIcon(Icons.close), findsNothing);
+    });
+
+    testWidgets('delete button is positioned at top-right corner of stamp bounding box',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 50.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+      const deleteButtonConfig = DeleteButtonConfig(
+        offsetX: -8.0,
+        offsetY: -8.0,
+        hitAreaSize: 44.0,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                        selectionConfig: const SelectionConfig(
+                          deleteButtonConfig: deleteButtonConfig,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      controller.selectStamp(0);
+      await tester.pump();
+
+      // Calculate expected stamp bounding box
+      final posPx = PdfCoordinateConverter.pdfPointToViewerOffset(
+        page: page,
+        xPt: 306.0,
+        yPt: 396.0,
+        scaledPageSizePx: const Size(612, 792),
+      );
+      final scale = PdfCoordinateConverter.pageScaleFactors(
+        page,
+        const Size(612, 792),
+      );
+      final wPx = 100.0 * scale.sx;
+      final hPx = 50.0 * scale.sy;
+      
+      // Visual stamp content position (not expanded bounding box)
+      final visualStampTop = posPx.dy - hPx / 2;
+      final visualStampRight = posPx.dx + wPx / 2;
+
+      // Find the delete button Positioned widget
+      final buttonFinder = find.byIcon(Icons.close);
+      expect(buttonFinder, findsOneWidget);
+      
+      final buttonWidget = tester.widget<Positioned>(
+        find.ancestor(
+          of: buttonFinder,
+          matching: find.byType(Positioned),
+        ).first,
+      );
+
+      // Expected button position: top-right corner of visual stamp content with offset
+      final expectedButtonLeft = visualStampRight - deleteButtonConfig.hitAreaSize + deleteButtonConfig.offsetX;
+      final expectedButtonTop = visualStampTop + deleteButtonConfig.offsetY;
+
+      expect(buttonWidget.left, closeTo(expectedButtonLeft, 0.1));
+      expect(buttonWidget.top, closeTo(expectedButtonTop, 0.1));
+    });
+
+    testWidgets('delete button is positioned relative to visual stamp content, not expanded bounding box',
+        (WidgetTester tester) async {
+      final controller = PdfStampEditorController();
+      final stamp = ImageStamp(
+        pageIndex: 0,
+        centerXPt: 306.0,
+        centerYPt: 396.0,
+        rotationDeg: 0.0,
+        pngBytes: Uint8List.fromList([
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82,
+        ]),
+        widthPt: 100.0,
+        heightPt: 50.0,
+      );
+      controller.addStamp(stamp);
+      final page = MockPdfPage();
+      const deleteButtonConfig = DeleteButtonConfig(
+        offsetX: -8.0,
+        offsetY: -8.0, // Negative offset should move button up from visual content top
+        hitAreaSize: 44.0,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 612,
+              height: 792,
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (context, _) {
+                  final currentStamp = controller.stamps[0];
+                  return Stack(
+                    children: [
+                      DraggableStampWidget(
+                        stamp: currentStamp,
+                        stampIndex: 0,
+                        page: page,
+                        scaledPageSizePx: const Size(612, 792),
+                        controller: controller,
+                        selectionConfig: const SelectionConfig(
+                          deleteButtonConfig: deleteButtonConfig,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      controller.selectStamp(0);
+      await tester.pump();
+
+      // Calculate visual stamp content position (not expanded bounding box)
+      final posPx = PdfCoordinateConverter.pdfPointToViewerOffset(
+        page: page,
+        xPt: 306.0,
+        yPt: 396.0,
+        scaledPageSizePx: const Size(612, 792),
+      );
+      final scale = PdfCoordinateConverter.pageScaleFactors(
+        page,
+        const Size(612, 792),
+      );
+      final wPx = 100.0 * scale.sx;
+      final hPx = 50.0 * scale.sy;
+      const hitAreaExpansion = 40.0;
+      
+      // Visual stamp content top (not expanded bounding box)
+      final visualStampTop = posPx.dy - hPx / 2;
+      final visualStampRight = posPx.dx + wPx / 2;
+
+      // Find the delete button Positioned widget
+      final buttonFinder = find.byIcon(Icons.close);
+      expect(buttonFinder, findsOneWidget);
+      
+      final buttonWidget = tester.widget<Positioned>(
+        find.ancestor(
+          of: buttonFinder,
+          matching: find.byType(Positioned),
+        ).first,
+      );
+
+      // Expected button position: top-right corner of VISUAL stamp content with offset
+      // Button's top-right should align with visual stamp's top-right, then offset applied
+      final expectedButtonLeft = visualStampRight - deleteButtonConfig.hitAreaSize + deleteButtonConfig.offsetX;
+      final expectedButtonTop = visualStampTop + deleteButtonConfig.offsetY;
+
+      expect(buttonWidget.left, closeTo(expectedButtonLeft, 0.1));
+      expect(buttonWidget.top, closeTo(expectedButtonTop, 0.1));
     });
 
     testWidgets('multiple stamps can be selected', (WidgetTester tester) async {

@@ -1,3 +1,23 @@
+## 0.5.0
+
+### Features
+
+* **Delete Button for Selected Stamps**: Added visual delete button that appears on selected stamps
+  * New `DeleteButtonConfig` class for customizing delete button appearance
+  * Button appears in the top-right corner of selected stamps
+  * Fully customizable: colors, size, icon, position, and elevation
+  * Can be disabled via `DeleteButtonConfig.disabled()`
+
+### API Changes
+
+* `SelectionConfig`:
+  * New optional parameter: `deleteButtonConfig` (default: `null` - button not shown)
+* New class: `DeleteButtonConfig` - Configuration for delete button styling
+
+### Backward Compatibility
+
+All changes are backward compatible. Existing code will continue to work without modification.
+
 ## 0.4.0
 
 ### Features
